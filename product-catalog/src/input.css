@@ -12,3 +12,7 @@
 		background-size: 1.25rem;
 	}
 }
+
+[hidden] {
+	display: none !important;
+}
