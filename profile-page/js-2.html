@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>JS 2 · Array methods | Muhammad Ismail Hasan</title>
+		<script>
+			try {
+				var t = localStorage.getItem("theme");
+				if (!t && matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+				if (t) document.documentElement.dataset.theme = t;
+			} catch (e) {}
+		</script>
+		<link rel="stylesheet" href="styles/main.css" />
+	</head>
+	<body>
+		<header class="nav-header">
+			<a href="index.html" class="logo">Ismail</a>
+			<div class="nav-actions">
+				<nav>
+					<ul class="nav-menu">
+						<li><a href="index.html">Home</a></li>
+						<li><a href="js-1.html">JS 1</a></li>
+						<li><a href="js-2.html">JS 2</a></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+
+		<main class="page-main">
+			<div>
+				<p class="section-header-number">JS 2</p>
+				<h1>Array methods</h1>
+				<p>forEach, map, filter, and reduce on a list of projects.</p>
+			</div>
+
+			<div class="filters" id="filters" role="group" aria-label="Filter by tag"></div>
+
+			<dl class="stats">
+				<div><dt>Projects</dt><dd id="stat-count">0</dd></div>
+				<div><dt>Hours</dt><dd id="stat-hours">0</dd></div>
+				<div><dt>Avg / project</dt><dd id="stat-avg">0</dd></div>
+			</dl>
+
+			<div class="project-list" id="projects"></div>
+		</main>
+
+		<script src="scripts/arrays.js"></script>
+	</body>
+</html>

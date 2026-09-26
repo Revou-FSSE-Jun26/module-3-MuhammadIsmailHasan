@@ -23,6 +23,8 @@
 					<li><a href="#skills">Skills</a></li>
 					<li><a href="#work">Work</a></li>
 					<li><a href="#contact">Contact</a></li>
+					<li><a href="js-1.html">JS 1</a></li>
+					<li><a href="js-2.html">JS 2</a></li>
 				</ul>
 			</nav>
 			<button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
@@ -212,78 +214,76 @@
 				</article>
 
 				<article id="contact-form" class="card">
-					<form id="form" action="">
+					<form id="form" action="#" novalidate>
 						<div class="form-field">
 							<label for="name">Full Name</label>
-							<input type="text" name="name" id="name" />
+							<input type="text" name="name" id="name" autocomplete="name" aria-describedby="name-error" />
+							<p class="error" id="name-error"></p>
 						</div>
 						<div class="form-field">
 							<label for="email">Email</label>
-							<input type="email" name="email" id="email" />
+							<input type="email" name="email" id="email" autocomplete="email" aria-describedby="email-error" />
+							<p class="error" id="email-error"></p>
 						</div>
 						<div class="form-field">
 							<label for="phone">Phone</label>
-							<input type="number" name="phone" id="phone" />
+							<input type="tel" name="phone" id="phone" autocomplete="tel" placeholder="+62 812 3456 7890" aria-describedby="phone-error" />
+							<p class="error" id="phone-error"></p>
 						</div>
 						<div class="form-field">
 							<label for="source">Source</label>
-							<select name="source" id="source">
-								<option value="social-media">
-									Sosial Media
-								</option>
-								<option value="website">Website</option>
-								<option value="linkedin">Linkedin</option>
+							<select name="source" id="source" aria-describedby="source-error">
+								<option value="">Where did you find me?</option>
+								<option value="Social media">Social media</option>
+								<option value="Website">Website</option>
+								<option value="LinkedIn">LinkedIn</option>
 							</select>
+							<p class="error" id="source-error"></p>
 						</div>
 						<div class="form-field">
 							<label for="address">Address</label>
-							<textarea name="address" id="address"></textarea>
+							<textarea name="address" id="address" aria-describedby="address-error"></textarea>
+							<p class="error" id="address-error"></p>
 						</div>
 						<div class="form-field">
 							<span>Reason</span>
 							<div class="radio-group">
 								<div class="radio-field">
 									<label for="job">Job</label>
-									<input
-										type="radio"
-										name="reason"
-										id="job"
-									/>
+									<input type="radio" name="reason" id="job" value="Job offer" checked />
 								</div>
 								<div class="radio-field">
 									<label for="project">Project</label>
-									<input
-										type="radio"
-										name="reason"
-										id="project"
-									/>
+									<input type="radio" name="reason" id="project" value="Project" />
 								</div>
 								<div class="radio-field">
 									<label for="hai">Say Hai</label>
-									<input
-										type="radio"
-										name="reason"
-										id="hai"
-									/>
+									<input type="radio" name="reason" id="hai" value="Say hi" />
 								</div>
 							</div>
 						</div>
 						<div class="form-field">
 							<label for="message">Message</label>
-							<textarea name="message" id="message"></textarea>
-							<p>0/300 · at least 10 characters</p>
+							<textarea name="message" id="message" maxlength="300" aria-describedby="message-error message-count"></textarea>
+							<p id="message-count">0/300 · at least 10 characters</p>
+							<p class="error" id="message-error"></p>
 						</div>
 						<div class="form-field checkbox">
 							<input type="checkbox" name="sendme" id="sendme" />
-							<label for="sendme"
-								>Send me updates about new projects</label
-							>
+							<label for="sendme">Send me updates about new projects</label>
 						</div>
 
-						<button class="btn btn-primary" type="submit">
-							Send Me Message
-						</button>
+						<button class="btn btn-primary" type="submit">Send Me Message</button>
+						<p class="form-status" id="form-status" role="status"></p>
 					</form>
+				</article>
+
+				<article class="card sent" id="sent" hidden>
+					<div class="sent-head">
+						<h3>Sent messages</h3>
+						<span id="sent-summary"></span>
+					</div>
+					<ol class="sent-list" id="sent-list"></ol>
 				</article>
 			</section>
 		</main>

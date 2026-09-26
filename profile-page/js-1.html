@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>JS 1 · DOM and events | Muhammad Ismail Hasan</title>
+		<script>
+			try {
+				var t = localStorage.getItem("theme");
+				if (!t && matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+				if (t) document.documentElement.dataset.theme = t;
+			} catch (e) {}
+		</script>
+		<link rel="stylesheet" href="styles/main.css" />
+	</head>
+	<body>
+		<header class="nav-header">
+			<a href="index.html" class="logo">Ismail</a>
+			<div class="nav-actions">
+				<nav>
+					<ul class="nav-menu">
+						<li><a href="index.html">Home</a></li>
+						<li><a href="js-1.html">JS 1</a></li>
+						<li><a href="js-2.html">JS 2</a></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+
+		<main class="page-main">
+			<div>
+				<p class="section-header-number">JS 1</p>
+				<h1>DOM and events</h1>
+			</div>
+
+			<div class="two-col">
+				<article class="card">
+					<form id="editor" autocomplete="off">
+						<div class="form-field">
+							<label for="name">Name</label>
+							<input id="name" value="Muhammad Ismail Hasan" />
+						</div>
+						<div class="form-field">
+							<label for="bio">Bio</label>
+							<textarea id="bio" maxlength="120">Junior web developer who likes building clean interfaces.</textarea>
+							<p><span id="bio-count">0</span>/120 characters</p>
+						</div>
+						<div class="form-field">
+							<label for="skill">Add a skill</label>
+							<div class="row">
+								<input id="skill" placeholder="e.g. Flexbox" />
+								<button class="btn btn-primary" type="submit">Add</button>
+							</div>
+						</div>
+						<div class="form-field checkbox">
+							<input type="checkbox" id="open" checked />
+							<label for="open">Open to work</label>
+						</div>
+					</form>
+				</article>
+
+				<article class="card" aria-live="polite">
+					<p class="status is-open" id="status">Open to work</p>
+					<h2 id="card-name"></h2>
+					<p id="card-bio"></p>
+					<div class="tag-list" id="tags"></div>
+					<div class="row">
+						<button class="btn btn-primary" id="like" type="button">♥ Like <span id="likes">0</span></button>
+						<button class="btn btn-outline" id="reset" type="button">Reset</button>
+					</div>
+				</article>
+			</div>
+		</main>
+
+		<script src="scripts/dom.js"></script>
+	</body>
+</html>
