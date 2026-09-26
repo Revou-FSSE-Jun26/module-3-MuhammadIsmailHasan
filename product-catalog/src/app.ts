@@ -41,6 +41,11 @@ const productGrid = document.getElementById("grid") as HTMLDivElement;
 const countText = document.getElementById("count") as HTMLParagraphElement;
 const emptyBox = document.getElementById("empty") as HTMLDivElement;
 const clearButton = document.getElementById("clear") as HTMLButtonElement;
+const cartButton = document.getElementById("cart-button") as HTMLButtonElement;
+const cartDialog = document.getElementById("cart-dialog") as HTMLDialogElement;
+const cartCloseButton = document.getElementById("cart-close") as HTMLButtonElement;
+const cartItemsBox = document.getElementById("cart-items") as HTMLDivElement;
+const cartFooter = document.getElementById("cart-footer") as HTMLDivElement;
 const cartBadge = document.getElementById("cart-count") as HTMLSpanElement;
 
 function formatRupiah(price: number): string {
@@ -71,6 +76,36 @@ function addToCart(productId: number) {
 	showCartCount();
 }
 
+function changeQuantity(productId: number, change: number) {
+	const item = cart.find((c) => c.product.id === productId);
+	if (item === undefined) return;
+
+	const newQuantity = item.quantity + change;
+	if (newQuantity > item.product.stock) return;
+
+	if (newQuantity <= 0) {
+		removeFromCart(productId);
+		return;
+	}
+	item.quantity = newQuantity;
+	showCart();
+}
+
+function removeFromCart(productId: number) {
+	const index = cart.findIndex((c) => c.product.id === productId);
+	if (index === -1) return;
+	cart.splice(index, 1);
+	showCart();
+}
+
+function getCartTotalPrice(): number {
+	let total = 0;
+	for (const item of cart) {
+		total = total + item.product.price * item.quantity;
+	}
+	return total;
+}
+
 function getCartTotalItems(): number {
 	let total = 0;
 	for (const item of cart) {
@@ -81,6 +116,52 @@ function getCartTotalItems(): number {
 
 function showCartCount() {
 	cartBadge.textContent = String(getCartTotalItems());
+}
+
+function showCart() {
+	showCartCount();
+
+	if (cart.length === 0) {
+		cartItemsBox.innerHTML = `<p class="py-8 text-center text-slate-500">Your cart is empty.</p>`;
+		cartFooter.innerHTML = "";
+		return;
+	}
+
+	let itemsHtml = "";
+	for (const item of cart) {
+		const p = item.product;
+		const subtotal = p.price * item.quantity;
+		const atLimit = item.quantity >= p.stock;
+		itemsHtml += `
+		<div class="flex gap-4">
+			<div class="shrink-0 w-16 h-16 rounded-2xl grid place-items-center bg-gradient-to-br from-brand-50 to-brand-100">
+				<span class="text-2xl font-extrabold text-brand-500/40">${p.name.charAt(0)}</span>
+			</div>
+			<div class="flex-1 min-w-0">
+				<p class="font-bold leading-tight">${p.name}</p>
+				<p class="text-sm text-slate-500">${formatRupiah(p.price)} x ${item.quantity}</p>
+				<div class="mt-2 flex items-center justify-between gap-2">
+					<div class="inline-flex items-center rounded-full ring-1 ring-slate-200">
+						<button type="button" data-minus="${p.id}" aria-label="Decrease quantity" class="w-11 h-11 rounded-full hover:bg-slate-100">−</button>
+						<span class="w-8 text-center font-semibold">${item.quantity}</span>
+						<button type="button" data-plus="${p.id}" ${atLimit ? "disabled" : ""} aria-label="Increase quantity" class="w-11 h-11 rounded-full hover:bg-slate-100 disabled:text-slate-300 disabled:hover:bg-transparent">+</button>
+					</div>
+					<span class="font-extrabold">${formatRupiah(subtotal)}</span>
+				</div>
+				<button type="button" data-remove="${p.id}" class="mt-1 text-sm text-red-600 hover:underline min-h-11">Remove</button>
+			</div>
+		</div>`;
+	}
+	cartItemsBox.innerHTML = itemsHtml;
+
+	cartFooter.innerHTML = `
+		<div class="flex items-center justify-between text-sm text-slate-500">
+			<span>Total items</span><span>${getCartTotalItems()}</span>
+		</div>
+		<div class="flex items-center justify-between text-lg font-extrabold">
+			<span>Total price</span><span>${formatRupiah(getCartTotalPrice())}</span>
+		</div>
+		<button type="button" class="min-h-11 rounded-full bg-brand-600 text-white font-semibold hover:bg-brand-700 transition">Checkout</button>`;
 }
 
 function getVisibleProducts(): Product[] {
@@ -198,6 +279,32 @@ clearButton.addEventListener("click", () => {
 	searchInput.value = "";
 	stockCheckbox.checked = false;
 	refresh();
+});
+
+cartButton.addEventListener("click", () => {
+	showCart();
+	cartDialog.showModal();
+});
+
+cartCloseButton.addEventListener("click", () => {
+	cartDialog.close();
+});
+
+cartDialog.addEventListener("click", (event) => {
+	if (event.target === cartDialog) cartDialog.close();
+});
+
+cartItemsBox.addEventListener("click", (event) => {
+	const button = (event.target as HTMLElement).closest("button");
+	if (button === null || button.disabled) return;
+
+	if (button.dataset["plus"] !== undefined) {
+		changeQuantity(Number(button.dataset["plus"]), 1);
+	} else if (button.dataset["minus"] !== undefined) {
+		changeQuantity(Number(button.dataset["minus"]), -1);
+	} else if (button.dataset["remove"] !== undefined) {
+		removeFromCart(Number(button.dataset["remove"]));
+	}
 });
 
 refresh();
