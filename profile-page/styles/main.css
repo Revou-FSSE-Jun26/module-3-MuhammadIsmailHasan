@@ -26,6 +26,8 @@
 	--badge-blue-bg: #dbeafe;
 	--badge-blue-text-color: #1e40af;
 
+	--nav-bg: rgb(255 255 255 / 0.85);
+
 	--radius: 12px;
 	--shadow: 0 2px 8px rgb(0 0 0 / 0.06);
 	--shadow-hover: 0 8px 24px rgb(0 0 0 / 0.12);
@@ -78,7 +80,7 @@ a {
 	align-items: center;
 	flex-wrap: wrap;
 	padding: 0.5rem 1rem;
-	background-color: rgb(255 255 255 / 0.85);
+	background-color: var(--nav-bg);
 	backdrop-filter: blur(8px);
 	border-bottom: 1px solid var(--border);
 }
@@ -222,7 +224,7 @@ main > section {
 
 .btn-outline:hover {
 	background-color: var(--text);
-	color: var(--text-button);
+	color: var(--bg);
 }
 
 /* ---------- Section headers ---------- */
@@ -509,7 +511,6 @@ footer {
 
 /* ---------- Desktop ---------- */
 @media (min-width: 1024px) {
-	/* keep section content aligned to a centered container while backgrounds stay full width */
 	main > section:not(#home) {
 		padding-inline: max(2rem, calc((100% - var(--container)) / 2));
 	}
@@ -521,6 +522,55 @@ footer {
 	#work-description {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+}
+
+/* ---------- Dark mode ---------- */
+:root[data-theme="dark"] {
+	color-scheme: dark;
+	--bg: #0f172a;
+	--surface: #1e293b;
+	--text: #f1f5f9;
+	--text-muted: #cbd5e1;
+	--border: #334155;
+	--primary: #3b82f6;
+	--primary-hover: #60a5fa;
+	--primary-soft: #1e3a8a;
+	--nav-bg: rgb(15 23 42 / 0.85);
+	--shadow: 0 2px 8px rgb(0 0 0 / 0.4);
+	--shadow-hover: 0 8px 24px rgb(0 0 0 / 0.6);
+	--badge-green-bg: #14532d;
+	--badge-green-text-color: #bbf7d0;
+	--badge-orange-bg: #7c2d12;
+	--badge-orange-text-color: #fed7aa;
+	--badge-red-bg: #7f1d1d;
+	--badge-red-text-color: #fecaca;
+	--badge-blue-bg: #1e3a8a;
+	--badge-blue-text-color: #bfdbfe;
+}
+
+.theme-toggle {
+	padding: 0.4rem 0.6rem;
+	font-size: 1.1rem;
+	line-height: 1;
+	background: transparent;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.theme-toggle:hover {
+	background-color: var(--primary-soft);
+}
+
+.nav-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+:root[data-theme="dark"] .btn-primary,
+:root[data-theme="dark"] .btn-danger {
+	color: #0f172a;
 }
 
 @media (prefers-reduced-motion: reduce) {
