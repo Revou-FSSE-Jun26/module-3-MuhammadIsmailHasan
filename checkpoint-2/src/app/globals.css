@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Design tokens. Components reference the generated utilities, never raw hex values. */
+@theme {
+  /* Primary */
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+
+  /* Accent */
+  --color-accent-100: #fce7f3;
+  --color-accent-500: #ec4899;
+  --color-accent-600: #db2777;
+
+  /* Promo banner */
+  --color-promo-500: #4f5fe0;
+  --color-promo-600: #3b4fd8;
+
+  /* Surfaces */
+  --color-surface: #ffffff;
+  --color-canvas: #f6f5fb;
+  --color-muted: #f3f4f6;
+
+  /* Category tile tints */
+  --color-tint-lilac: #efeafc;
+  --color-tint-blue: #e6eefc;
+  --color-tint-mint: #e3f5ec;
+  --color-tint-peach: #fdeae4;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px rgb(16 24 40 / 0.06);
+  --shadow-card-hover: 0 2px 4px rgb(16 24 40 / 0.06), 0 16px 40px rgb(16 24 40 / 0.10);
+}
+
+body {
+  background: var(--color-canvas);
+  color: #171717;
+}
