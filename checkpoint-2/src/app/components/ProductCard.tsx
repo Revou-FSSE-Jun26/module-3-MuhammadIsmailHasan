@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 import Card from "@/app/components/ui/Card";
@@ -32,7 +33,7 @@ const PLACEHOLDER_TINTS = [
 
 export function getButtonClasses(inStock: boolean): string {
   const base =
-    "h-10 flex-1 rounded-full text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 cursor-pointer";
+    "h-full flex-1 p-2 rounded-full text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 cursor-pointer";
 
   return inStock
     ? `${base} bg-brand-600 text-white hover:bg-brand-700`
@@ -56,7 +57,11 @@ export default function ProductCard({
 
   return (
     <Card className="flex flex-col">
-      <div className={`relative aspect-square ${tint}`}>
+      <Link
+        href={`/products/${product.id}`}
+        aria-label={product.name}
+        className={`relative block aspect-square ${tint}`}
+      >
         {badge && (
           <span
             className={`absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-xs font-semibold ${BADGE_STYLES[badge].className}`}
@@ -82,11 +87,16 @@ export default function ProductCard({
             {product.name.charAt(0)}
           </span>
         )}
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-900">
-          {product.name}
+          <Link
+            href={`/products/${product.id}`}
+            className="transition-colors hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
+            {product.name}
+          </Link>
         </h3>
 
         {rating !== undefined && (
