@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface HeaderProps {
   cartItemCount?: number;
@@ -12,6 +15,14 @@ const NAV_ITEMS = [
 ];
 
 export default function Header({ cartItemCount = 0 }: HeaderProps) {
+  const pathname = usePathname();
+
+  function getNavClasses(href: string): string {
+    const base = "text-sm font-medium transition-colors";
+    const isActive = (pathname === href) ? 'text-neutral-900 font-semibold' : 'text-neutral-600 hover:text-neutral-900';
+    return `${base} ${isActive}`;
+  }
+
   return (
     <header className="sticky top-0 z-20 border-b border-neutral-200/70 bg-surface/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-6 px-4">
@@ -29,7 +40,8 @@ export default function Header({ cartItemCount = 0 }: HeaderProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+              aria-current={pathname === item.href ? "page" : undefined}
+              className={getNavClasses(item.href)}
             >
               {item.label}
             </Link>

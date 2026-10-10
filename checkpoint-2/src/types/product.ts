@@ -34,3 +34,17 @@ export interface Pagination {
   total_items: number;
   total_pages: number;
 }
+
+/** GET /orders — list item (the detail response adds `items`). */
+export interface Order {
+  id: number;
+  user_id: number;
+  total_amount: number;
+  status: string;
+  ordered_at: string;
+  total_items: number;
+  total_quantity: number;
+  tracking_id: string | null;
+  shipping_recipient_name: string | null;
+  shipping_city: string | null;
+}
