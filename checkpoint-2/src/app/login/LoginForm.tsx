@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { loginAction, type LoginFormState } from "@/app/login/actions";
 
@@ -9,8 +9,18 @@ const INITIAL_STATE: LoginFormState = {};
 export default function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, INITIAL_STATE);
 
+  const [edited, setEdited] = useState(false);
+  const hideMessages = edited || isPending;
+  const emailError = hideMessages ? undefined : state.error?.email;
+  const passwordError = hideMessages ? undefined : state.error?.password;
+  const message = hideMessages ? undefined : state.message;
+
   return (
-    <form action={formAction} className="rounded-2xl bg-surface p-8 shadow-card">
+    <form
+      action={formAction}
+      onSubmit={() => setEdited(false)}
+      className="rounded-2xl bg-surface p-8 shadow-card"
+    >
       <h1 className="text-xl font-bold tracking-tight text-neutral-900">Sign in</h1>
       <p className="mt-1 text-sm text-neutral-500">
         Your orders are tied to your RevoShop account.
@@ -24,11 +34,16 @@ export default function LoginForm() {
           <input
             id="email"
             name="email"
-            type="email"
-            required
+            type="text"
             autoComplete="email"
+            onChange={() => setEdited(true)}
             className="mt-1.5 h-11 w-full rounded-xl border border-neutral-200 bg-surface px-3.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
           />
+          {emailError && (
+            <p role="alert" className="mt-2 text-sm text-red-600">
+              {emailError}
+            </p>
+          )}
         </div>
 
         <div>
@@ -39,18 +54,23 @@ export default function LoginForm() {
             id="password"
             name="password"
             type="password"
-            required
             autoComplete="current-password"
+            onChange={() => setEdited(true)}
             className="mt-1.5 h-11 w-full rounded-xl border border-neutral-200 bg-surface px-3.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
           />
+          {passwordError && (
+            <p role="alert" className="mt-2 text-sm text-red-600">
+              {passwordError}
+            </p>
+          )}
         </div>
-      </div>
 
-      {state.error && (
-        <p role="alert" className="mt-4 text-sm text-red-600">
-          {state.error}
-        </p>
-      )}
+        {message && (
+            <p role="alert" className="mt-2 text-sm text-red-600">
+              {message}
+            </p>
+          )}
+      </div>
 
       <button
         type="submit"
