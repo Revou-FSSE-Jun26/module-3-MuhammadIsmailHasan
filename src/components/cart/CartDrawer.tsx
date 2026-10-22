@@ -1,0 +1,231 @@
+"use client";
+
+import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect } from "react";
+import { useCart } from "./CartProvider";
+import { Icon } from "@/components/ui/Icon";
+import { ProductImage } from "@/components/product/ProductImage";
+import { formatPrice } from "@/lib/format";
+import { siteConfig } from "@/lib/site";
+
+export function CartDrawer() {
+  const { isOpen, close, items, subtotal, setQuantity, remove } = useCart();
+  const threshold = siteConfig.freeShippingThreshold;
+  const remaining = Math.max(0, threshold - subtotal);
+  const progress = Math.min(1, subtotal / threshold);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, close]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={close}
+          />
+          <motion.aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="Shopping cart"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 34,
+            }}
+          >
+            <div className="flex items-center justify-between border-b border-line px-6 py-5">
+              <h2 className="text-lg font-bold">Your cart</h2>
+              <button
+                type="button"
+                onClick={close}
+                className="grid size-11 place-items-center rounded-full hover:bg-[#f3f3f3]"
+                aria-label="Close cart"
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+
+            <div className="border-b border-line px-6 py-4">
+              <p className="text-sm">
+                {remaining > 0 ? (
+                  <>
+                    Spend <b>{formatPrice(remaining)}</b> more for free shipping
+                  </>
+                ) : (
+                  <b>You&apos;ve unlocked free shipping!</b>
+                )}
+              </p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#eee]">
+                <motion.div
+                  className="h-full rounded-full bg-teal"
+                  initial={false}
+                  animate={{ width: `${progress * 100}%` }}
+                  transition={{
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6">
+              {items.length === 0 ? (
+                <motion.div
+                  className="flex h-full flex-col items-center justify-center gap-4 text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <span className="grid size-20 place-items-center rounded-full bg-[#f3f3f3]">
+                    <Icon name="bag" size={32} />
+                  </span>
+                  <p className="font-semibold">Your cart is empty</p>
+                  <Link
+                    href="/collections/all"
+                    onClick={close}
+                    className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white"
+                  >
+                    Continue shopping
+                  </Link>
+                </motion.div>
+              ) : (
+                <ul className="divide-y divide-line">
+                  <AnimatePresence initial={false}>
+                    {items.map(({ product, quantity }) => (
+                      <motion.li
+                        key={product.id}
+                        layout
+                        initial={{ opacity: 0, x: 40 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{
+                          opacity: 0,
+                          x: 40,
+                          height: 0,
+                          paddingTop: 0,
+                          paddingBottom: 0,
+                        }}
+                        transition={{ duration: 0.35 }}
+                        className="flex gap-4 overflow-hidden py-5"
+                      >
+                        <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-[#f2f2f2]">
+                          <ProductImage
+                            src={product.image}
+                            alt={product.title}
+                            id={product.id}
+                            sizes="80px"
+                            className="p-2"
+                          />
+                        </div>
+                        <div className="flex flex-1 flex-col">
+                          <Link
+                            href={`/products/${product.id}`}
+                            onClick={close}
+                            className="line-clamp-2 text-sm font-semibold hover:underline"
+                          >
+                            {product.title}
+                          </Link>
+                          <span className="mt-1 text-sm text-muted">
+                            {formatPrice(product.price)}
+                          </span>
+                          <div className="mt-auto flex items-center justify-between pt-2">
+                            <QuantityStepper
+                              value={quantity}
+                              onChange={(q) => setQuantity(product.id, q)}
+                              label={product.title}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => remove(product.id)}
+                              className="text-xs text-muted underline hover:text-ink"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              )}
+            </div>
+
+            {items.length > 0 && (
+              <div className="border-t border-line px-6 py-5">
+                <div className="flex justify-between text-base font-bold">
+                  <span>Subtotal</span>
+                  <motion.span
+                    key={subtotal}
+                    initial={{ opacity: 0.4, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    {formatPrice(subtotal)}
+                  </motion.span>
+                </div>
+                <p className="mt-1 text-xs text-muted">
+                  Taxes and shipping calculated at checkout.
+                </p>
+                <button
+                  type="button"
+                  className="mt-4 h-12 w-full rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
+                >
+                  Checkout
+                </button>
+              </div>
+            )}
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+export function QuantityStepper({
+  value,
+  onChange,
+  label,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center rounded-full border border-line">
+      <button
+        type="button"
+        onClick={() => onChange(value - 1)}
+        className="grid size-9 place-items-center"
+        aria-label={`Decrease quantity of ${label}`}
+      >
+        <Icon name="minus" size={14} />
+      </button>
+      <span className="w-6 text-center text-sm font-semibold" aria-live="polite">
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(value + 1)}
+        className="grid size-9 place-items-center"
+        aria-label={`Increase quantity of ${label}`}
+      >
+        <Icon name="plus" size={14} />
+      </button>
+    </div>
+  );
+}

@@ -35,3 +35,9 @@ SETUP-LOG.md
 checkpoint-2/.next/
 checkpoint-2/out/
 checkpoint-2/next-env.d.ts
+
+# Next.js (revo-theme, di root)
+.next
+out
+next-env.d.ts
+*.tsbuildinfo

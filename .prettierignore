@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+checkpoint-1
+checkpoint-2
+docs
+package-lock.json
+*.md
+tsconfig.json
+next-env.d.ts

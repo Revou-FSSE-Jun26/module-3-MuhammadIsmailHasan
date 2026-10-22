@@ -1,0 +1,21 @@
+root = true
+
+# Applies to every file type: no indentation rules here on purpose,
+# so other languages (PHP, Python, ...) keep their own conventions.
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+# 2 spaces only for this Next.js project's web code and config files
+[src/**]
+indent_style = space
+indent_size = 2
+
+[{package.json,tsconfig.json,.prettierrc.json,eslint.config.mjs,next.config.ts,postcss.config.mjs}]
+indent_style = space
+indent_size = 2
