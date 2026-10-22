@@ -3,9 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "fakestoreapi.com" },
-      { protocol: "https", hostname: "i.imgur.com" },
-      { protocol: "https", hostname: "api.escuelajs.co" },
+      { protocol: "https", hostname: "revoshop-apis.onrender.com" },
+      { protocol: "http", hostname: "localhost", port: "5000" },
+      { protocol: "https", hostname: "**" },
     ],
   },
 };

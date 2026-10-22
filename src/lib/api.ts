@@ -1,65 +1,184 @@
-import { fallbackProducts } from "./fallback-products";
-import type { Product } from "./types";
+import type {
+  ApiEnvelope,
+  Category,
+  CreateOrderPayload,
+  LoginResponse,
+  Order,
+  OrderStatus,
+  Paginated,
+  Product,
+  ProductDetail,
+  ProductQuery,
+  ProductSummary,
+  RegisterPayload,
+  User,
+} from "./types";
 
-/**
- * Data layer — FakeStore API (https://fakestoreapi.com).
- * Every call falls back to local sample data so the theme still renders
- * when the API is down or rate-limited.
- *
- * To switch API, change NEXT_PUBLIC_API_URL and adapt `normalize()`.
- */
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://fakestoreapi.com";
-const REVALIDATE_SECONDS = 60 * 60;
+export const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000/api/v1"
+).replace(/\/$/, "");
 
-async function request<T>(path: string, fallback: T): Promise<T> {
+const API_ORIGIN = new URL(API_BASE_URL).origin;
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+type RequestOptions = Omit<RequestInit, "body"> & {
+  body?: unknown;
+  token?: string | null;
+  query?: Record<string, string | number | undefined>;
+  revalidate?: number | false;
+};
+
+function buildUrl(path: string, query?: RequestOptions["query"]) {
+  const url = new URL(`${API_BASE_URL}${path}`);
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value !== undefined && value !== "") url.searchParams.set(key, String(value));
+  }
+  return url.toString();
+}
+
+export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { body, token, query, revalidate, headers, ...init } = options;
+  const isForm = body instanceof FormData;
+
+  const res = await fetch(buildUrl(path, query), {
+    ...init,
+    headers: {
+      Accept: "application/json",
+      ...(body && !isForm ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
+    },
+    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
+    ...(revalidate !== undefined ? { next: { revalidate } } : { cache: "no-store" }),
+  });
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok || json?.status === false) {
+    throw new ApiError(res.status, json?.message ?? res.statusText);
+  }
+
+  return json as T;
+}
+
+/** Backend may return "/static/images/x.jpg" — make it absolute for <img>/next/image. */
+export function imageUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  if (/^https?:\/\//.test(url)) return url;
+  return `${API_ORIGIN}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
+const unwrap = <T>(env: ApiEnvelope<T>) => env.data as T;
+const paged = <T>(env: ApiEnvelope<T[]>): Paginated<T> => ({
+  items: env.data ?? [],
+  pagination: env.pagination ?? null,
+});
+
+// ---------- Auth ----------
+export const authApi = {
+  login: (email: string, password: string) =>
+    request<LoginResponse>("/auth/login", { method: "POST", body: { email, password } }),
+  refresh: (refreshToken: string) =>
+    request<ApiEnvelope<never> & { access_token: string }>("/auth/refresh", {
+      method: "POST",
+      token: refreshToken,
+    }),
+  register: (payload: RegisterPayload) =>
+    request<ApiEnvelope<User>>("/users/", { method: "POST", body: payload }).then(unwrap),
+  me: (token: string) => request<ApiEnvelope<User>>("/users/me", { token }).then(unwrap),
+};
+
+// ---------- Catalog ----------
+const CATALOG_REVALIDATE = 60;
+
+export const productApi = {
+  list: (query: ProductQuery = {}) =>
+    request<ApiEnvelope<ProductSummary[]>>("/products/", {
+      query,
+      revalidate: CATALOG_REVALIDATE,
+    }).then(paged),
+  get: (id: number) =>
+    request<ApiEnvelope<ProductDetail>>(`/products/${id}`, {
+      revalidate: CATALOG_REVALIDATE,
+    }).then(unwrap),
+  getBySlug: (slug: string) =>
+    request<ApiEnvelope<ProductDetail>>(`/products/slug/${encodeURIComponent(slug)}`, {
+      revalidate: CATALOG_REVALIDATE,
+    }).then(unwrap),
+};
+
+export const categoryApi = {
+  list: () =>
+    request<ApiEnvelope<Category[]>>("/categories/", { revalidate: CATALOG_REVALIDATE }).then(
+      unwrap,
+    ),
+  get: (id: number) =>
+    request<ApiEnvelope<Category>>(`/categories/${id}`, { revalidate: CATALOG_REVALIDATE }).then(
+      unwrap,
+    ),
+};
+
+// ---------- Orders ----------
+export const orderApi = {
+  list: (token: string, page = 1) =>
+    request<ApiEnvelope<Order[]>>("/orders/", { token, query: { page } }).then(paged),
+  get: (token: string, id: number) =>
+    request<ApiEnvelope<Order>>(`/orders/${id}`, { token }).then(unwrap),
+  create: (token: string, payload: CreateOrderPayload) =>
+    request<ApiEnvelope<Order>>("/orders/", { method: "POST", token, body: payload }).then(unwrap),
+  updateStatus: (token: string, id: number, status: OrderStatus) =>
+    request<ApiEnvelope<Order>>(`/orders/${id}`, { method: "PUT", token, body: { status } }).then(
+      unwrap,
+    ),
+};
+
+// ---------- Temporary bridge for the existing theme (removed in Step 1) ----------
+function toUiProduct(p: ProductSummary, category = "all"): Product {
+  return {
+    id: p.id,
+    title: p.name,
+    price: p.price,
+    description: "",
+    category,
+    image: imageUrl(p.image),
+    rating: { rate: 0, count: p.stock },
+  };
+}
+
+async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
-    const res = await fetch(`${API_URL}${path}`, {
-      next: { revalidate: REVALIDATE_SECONDS },
-    });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return (await res.json()) as T;
+    return await fn();
   } catch (error) {
-    console.warn(`[api] ${path} failed, using fallback data:`, error);
+    console.warn("[api] request failed:", error);
     return fallback;
   }
 }
 
-function normalize(p: Partial<Product>): Product {
-  return {
-    id: Number(p.id),
-    title: p.title ?? "Untitled product",
-    price: Number(p.price ?? 0),
-    description: p.description ?? "",
-    category: p.category ?? "uncategorized",
-    image: p.image ?? "",
-    rating: p.rating ?? { rate: 0, count: 0 },
-  };
-}
+export const getProducts = () =>
+  safe(async () => (await productApi.list({ limit: 50 })).items.map((p) => toUiProduct(p)), []);
 
-export async function getProducts(): Promise<Product[]> {
-  const data = await request<Partial<Product>[]>("/products", fallbackProducts);
-  return Array.isArray(data) ? data.map(normalize) : fallbackProducts;
-}
+export const getProduct = (id: number) =>
+  safe<Product | null>(async () => {
+    const p = await productApi.get(id);
+    return {
+      ...toUiProduct(p, p.sub_category?.name ?? "all"),
+      description: p.description ?? "",
+    };
+  }, null);
 
-export async function getProduct(id: number): Promise<Product | null> {
-  const fallback = fallbackProducts.find((p) => p.id === id) ?? null;
-  const data = await request<Partial<Product> | null>(`/products/${id}`, fallback);
-  // FakeStore returns an empty body (null) for unknown ids
-  return data && data.id ? normalize(data) : null;
-}
+export const getCategories = () =>
+  safe(async () => (await categoryApi.list()).map((c) => c.name), []);
 
-export async function getCategories(): Promise<string[]> {
-  const fallback = Array.from(new Set(fallbackProducts.map((p) => p.category)));
-  const data = await request<string[]>("/products/categories", fallback);
-  return Array.isArray(data) && data.length ? data : fallback;
-}
-
-export async function getProductsByCategory(category: string): Promise<Product[]> {
-  if (category === "all") return getProducts();
-  const fallback = fallbackProducts.filter((p) => p.category === category);
-  const data = await request<Partial<Product>[]>(
-    `/products/category/${encodeURIComponent(category)}`,
-    fallback,
-  );
-  return Array.isArray(data) ? data.map(normalize) : fallback;
-}
+export const getProductsByCategory = (category: string) => {
+  void category;
+  return getProducts();
+};
