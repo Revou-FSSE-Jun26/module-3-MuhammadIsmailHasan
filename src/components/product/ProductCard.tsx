@@ -26,7 +26,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
   const { add, wishlist, toggleWish } = useCart();
   const [added, setAdded] = useState(false);
   const wished = wishlist.includes(product.id);
-  const href = `/products/${product.id}`;
+  const href = `/products/${product.slug}`;
   const soldOut = product.stock <= 0;
 
   function quickAdd() {

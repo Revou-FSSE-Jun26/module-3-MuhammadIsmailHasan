@@ -39,7 +39,7 @@ export function Recommend({ product }: { product?: Product }) {
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
         >
           <Link
-            href={`/products/${product.id}`}
+            href={`/products/${product.slug}`}
             className="relative block aspect-square overflow-hidden rounded-2xl bg-[#f2f2f2]"
           >
             <ProductImage src={product.image} alt={product.title} id={product.id} sizes="320px" />

@@ -63,7 +63,7 @@ export function TechEssentials({ products }: { products: Product[] }) {
           {products.map((p, i) => (
             <Link
               key={p.id}
-              href={`/products/${p.id}`}
+              href={`/products/${p.slug}`}
               className="group relative flex h-[52vh] max-h-[460px] min-h-[320px] w-[72vw] max-w-[360px] shrink-0 flex-col overflow-hidden rounded-3xl p-6"
               style={{ background: CARD_TINTS[i % CARD_TINTS.length] }}
             >

@@ -5,7 +5,7 @@ export const siteConfig = {
   name: "RevoShop",
   locale: "id-ID",
   currency: "IDR",
-  freeShippingThreshold: 100,
+  freeShippingThreshold: 1000000,
   phone: "+62 895 2843 8676",
   email: "hello@ismailhasan.my.id",
   address: "Jl. Ir. Soekarno, Ngawi, Jawa Timur",

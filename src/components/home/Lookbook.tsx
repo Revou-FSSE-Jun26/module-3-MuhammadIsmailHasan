@@ -84,7 +84,7 @@ export function Lookbook({ products }: { products: Product[] }) {
                       </div>
                       <div className="min-w-0">
                         <Link
-                          href={`/products/${p.id}`}
+                          href={`/products/${p.slug}`}
                           className="line-clamp-2 text-sm font-semibold hover:underline"
                         >
                           {p.title}

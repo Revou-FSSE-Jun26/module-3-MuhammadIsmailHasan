@@ -176,9 +176,9 @@ export async function getProducts(query: ProductQuery = {}) {
   return { items: items.map(toProduct), pagination };
 }
 
-export async function getProduct(id: number): Promise<Product | null> {
+export async function getProduct(slug: string): Promise<Product | null> {
   try {
-    return toProduct(await productApi.get(id));
+    return toProduct(await productApi.getBySlug(slug));
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
     throw error;

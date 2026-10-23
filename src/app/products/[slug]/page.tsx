@@ -6,11 +6,11 @@ import { ProductDetail } from "@/components/product/ProductDetail";
 import { getProduct, getProducts } from "@/lib/api";
 import { categoryHref } from "@/lib/format";
 
-type Params = Promise<{ id: string }>;
+type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { id } = await params;
-  const product = Number.isFinite(Number(id)) ? await getProduct(Number(id)) : null;
+  const { slug } = await params;
+  const product = slug ? await getProduct(slug) : null;
   return {
     title: product?.title ?? "Product not found",
     description: product?.description.slice(0, 150),
@@ -18,13 +18,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function ProductPage({ params }: { params: Params }) {
-  const { id } = await params;
-  const product = Number.isFinite(Number(id)) ? await getProduct(Number(id)) : null;
+  const { slug } = await params;
+  const product = slug ? await getProduct(slug) : null;
   if (!product) notFound();
 
   const related = product.subCategoryId
     ? (await getProducts({ sub_category_id: product.subCategoryId, limit: 6 })).items
-        .filter((p) => p.id !== product.id)
+        .filter((p) => p.slug !== product.slug)
         .slice(0, 5)
     : [];
 
