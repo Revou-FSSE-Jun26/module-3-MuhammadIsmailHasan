@@ -29,7 +29,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 type Stored = { items: CartItem[]; wishlist: number[] };
 
-const STORAGE_KEY = "theme-cart-v1";
+const STORAGE_KEY = "revoshop-cart-v1";
 const EMPTY: Stored = { items: [], wishlist: [] };
 
 // Cached copy: React needs the exact same object back until the data really changes.

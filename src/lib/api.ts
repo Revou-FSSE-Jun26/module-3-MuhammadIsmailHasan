@@ -11,6 +11,7 @@ import type {
   ProductQuery,
   ProductSummary,
   RegisterPayload,
+  SubCategory,
   User,
 } from "./types";
 
@@ -118,13 +119,22 @@ export const productApi = {
 
 export const categoryApi = {
   list: () =>
-    request<ApiEnvelope<Category[]>>("/categories/", { revalidate: CATALOG_REVALIDATE }).then(
-      unwrap,
-    ),
+    request<ApiEnvelope<Category[]>>("/categories/", {
+      query: { limit: 100 },
+      revalidate: CATALOG_REVALIDATE,
+    }).then(unwrap),
   get: (id: number) =>
     request<ApiEnvelope<Category>>(`/categories/${id}`, { revalidate: CATALOG_REVALIDATE }).then(
       unwrap,
     ),
+};
+
+export const subCategoryApi = {
+  list: () =>
+    request<ApiEnvelope<SubCategory[]>>("/sub-categories/", {
+      query: { limit: 100 },
+      revalidate: CATALOG_REVALIDATE,
+    }).then(unwrap),
 };
 
 // ---------- Orders ----------
@@ -141,44 +151,46 @@ export const orderApi = {
     ),
 };
 
-// ---------- Temporary bridge for the existing theme (removed in Step 1) ----------
-function toUiProduct(p: ProductSummary, category = "all"): Product {
+// ---------- View-model mapper + page-level readers ----------
+export function toProduct(p: ProductSummary | ProductDetail): Product {
+  const detail = "images" in p ? p : null;
+  const gallery = detail?.images.map((img) => imageUrl(img.url)) ?? [];
   return {
     id: p.id,
+    slug: p.slug,
     title: p.name,
     price: p.price,
-    description: "",
-    category,
-    image: imageUrl(p.image),
-    rating: { rate: 0, count: p.stock },
+    stock: p.stock,
+    description: detail?.description ?? "",
+    image: imageUrl(p.image) || gallery[0] || "",
+    images: gallery.length ? gallery : p.image ? [imageUrl(p.image)] : [],
+    category: detail?.sub_category?.category?.name ?? "",
+    categoryId: detail?.sub_category?.category?.id ?? null,
+    subCategory: detail?.sub_category?.name ?? "",
+    subCategoryId: detail?.sub_category?.id ?? null,
   };
 }
 
-async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+export async function getProducts(query: ProductQuery = {}) {
+  const { items, pagination } = await productApi.list(query);
+  return { items: items.map(toProduct), pagination };
+}
+
+export async function getProduct(id: number): Promise<Product | null> {
   try {
-    return await fn();
+    return toProduct(await productApi.get(id));
   } catch (error) {
-    console.warn("[api] request failed:", error);
-    return fallback;
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
   }
 }
 
-export const getProducts = () =>
-  safe(async () => (await productApi.list({ limit: 50 })).items.map((p) => toUiProduct(p)), []);
-
-export const getProduct = (id: number) =>
-  safe<Product | null>(async () => {
-    const p = await productApi.get(id);
-    return {
-      ...toUiProduct(p, p.sub_category?.name ?? "all"),
-      description: p.description ?? "",
-    };
-  }, null);
-
-export const getCategories = () =>
-  safe(async () => (await categoryApi.list()).map((c) => c.name), []);
-
-export const getProductsByCategory = (category: string) => {
-  void category;
-  return getProducts();
-};
+export async function getCategories(): Promise<Category[]> {
+  const [categories, subs] = await Promise.all([categoryApi.list(), subCategoryApi.list()]);
+  return categories
+    .filter((c) => c.is_active)
+    .map((c) => ({
+      ...c,
+      sub_categories: subs.filter((s) => s.category_id === c.id && s.is_active),
+    }));
+}

@@ -56,7 +56,7 @@ export function RevealGroup({ children, className }: { children: ReactNode; clas
       variants={groupVariants}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, amount: 0.15 }}
+      viewport={{ once: true, amount: "some" }}
     >
       {children}
     </motion.div>

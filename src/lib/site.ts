@@ -19,7 +19,6 @@ export const siteConfig = {
   mainNav: [
     { label: "Home", href: "/" },
     { label: "Catalog", href: "/collections/all" },
-    { label: "Electronics", href: "/collections/electronics" },
     { label: "Contact", href: "/#newsletter" },
   ],
 
@@ -35,7 +34,7 @@ export const siteConfig = {
       subtitle: "Navigate your day seamlessly with our innovative electronics.",
       cta: {
         label: "Shop electronics",
-        href: "/collections/electronics",
+        href: "/collections/all",
       },
       scene: "hills" as SceneVariant,
       palette: "peach" as ScenePalette,
@@ -46,7 +45,7 @@ export const siteConfig = {
       subtitle: "Everyday clothing made for comfort, built to last.",
       cta: {
         label: "Shop clothing",
-        href: "/collections/men's%20clothing",
+        href: "/collections/all",
       },
       scene: "lake" as SceneVariant,
       palette: "sunset" as ScenePalette,
@@ -55,7 +54,7 @@ export const siteConfig = {
       eyebrow: "Limited edition",
       title: "Shine Every Moment",
       subtitle: "Jewelry pieces picked for the little celebrations.",
-      cta: { label: "Shop jewelry", href: "/collections/jewelery" },
+      cta: { label: "Shop jewelry", href: "/collections/all" },
       scene: "dunes" as SceneVariant,
       palette: "dusk" as ScenePalette,
     },

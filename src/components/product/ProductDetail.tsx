@@ -5,9 +5,8 @@ import { useState, type MouseEvent } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { QuantityStepper } from "@/components/cart/CartDrawer";
 import { Icon } from "@/components/ui/Icon";
-import { categoryLabel, cn, formatPrice } from "@/lib/format";
+import { cn, formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
-import { Stars } from "./ProductCard";
 import { ProductImage } from "./ProductImage";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -17,7 +16,18 @@ export function ProductDetail({ product }: { product: Product }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 });
+  const [index, setIndex] = useState(0);
   const wished = wishlist.includes(product.id);
+  const gallery = product.images.length ? product.images : [product.image];
+  const soldOut = product.stock <= 0;
+
+  function showNext() {
+    setIndex((i) => (i + 1) % gallery.length);
+  }
+
+  function showPrev() {
+    setIndex((i) => (i - 1 + gallery.length) % gallery.length);
+  }
 
   function onMove(e: MouseEvent<HTMLDivElement>) {
     const r = e.currentTarget.getBoundingClientRect();
@@ -36,31 +46,85 @@ export function ProductDetail({ product }: { product: Product }) {
 
   return (
     <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-16">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: EASE }}
-        className="relative aspect-square cursor-zoom-in overflow-hidden rounded-3xl bg-[#f2f2f2]"
-        onMouseMove={onMove}
-        onMouseLeave={() => setZoom((z) => ({ ...z, active: false }))}
-      >
-        <div
-          className="relative h-full w-full transition-transform duration-300 ease-out"
-          style={{
-            transform: zoom.active ? "scale(1.8)" : "scale(1)",
-            transformOrigin: `${zoom.x}% ${zoom.y}%`,
-          }}
+      <div className="flex flex-col gap-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: EASE }}
+          className="relative aspect-square cursor-zoom-in overflow-hidden rounded-3xl bg-[#f2f2f2]"
+          onMouseMove={onMove}
+          onMouseLeave={() => setZoom((z) => ({ ...z, active: false }))}
         >
-          <ProductImage
-            src={product.image}
-            alt={product.title}
-            id={product.id}
-            priority
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="p-12"
-          />
-        </div>
-      </motion.div>
+          <div
+            className="relative h-full w-full transition-transform duration-300 ease-out"
+            style={{
+              transform: zoom.active ? "scale(1.8)" : "scale(1)",
+              transformOrigin: `${zoom.x}% ${zoom.y}%`,
+            }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={index}
+                className="absolute inset-0"
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -40 }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                <ProductImage
+                  src={gallery[index] ?? ""}
+                  alt={product.title}
+                  id={product.id}
+                  priority
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="p-12"
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          {gallery.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={showPrev}
+                aria-label="Previous image"
+                className="absolute left-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white shadow-sm"
+              >
+                <Icon name="arrowRight" size={16} className="rotate-180" />
+              </button>
+              <button
+                type="button"
+                onClick={showNext}
+                aria-label="Next image"
+                className="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white shadow-sm"
+              >
+                <Icon name="arrowRight" size={16} />
+              </button>
+            </>
+          )}
+        </motion.div>
+
+        {gallery.length > 1 && (
+          <ul className="flex gap-3 overflow-x-auto" aria-label="Product images">
+            {gallery.map((src, i) => (
+              <li key={`${src}-${i}`}>
+                <button
+                  type="button"
+                  onClick={() => setIndex(i)}
+                  aria-label={`Show image ${i + 1}`}
+                  aria-current={i === index}
+                  className={cn(
+                    "relative block size-20 overflow-hidden rounded-xl bg-[#f2f2f2] ring-2 transition",
+                    i === index ? "ring-ink" : "ring-transparent hover:ring-line",
+                  )}
+                >
+                  <ProductImage src={src} alt="" id={product.id} sizes="80px" className="p-2" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <motion.div
         initial="hidden"
@@ -78,7 +142,7 @@ export function ProductDetail({ product }: { product: Product }) {
       >
         {[
           <p key="cat" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-            {categoryLabel(product.category)}
+            {product.subCategory}
           </p>,
           <h1
             key="title"
@@ -86,10 +150,9 @@ export function ProductDetail({ product }: { product: Product }) {
           >
             {product.title}
           </h1>,
-          <div key="rating" className="mt-3 flex items-center gap-2 text-sm text-muted">
-            <Stars rate={product.rating.rate} size={16} /> {product.rating.rate.toFixed(1)} ·{" "}
-            {product.rating.count} reviews
-          </div>,
+          <p key="stock" className={cn("mt-3 text-sm", soldOut ? "text-coral" : "text-muted")}>
+            {soldOut ? "Sold out" : `${product.stock} in stock`}
+          </p>,
           <p key="price" className="mt-6 text-3xl font-bold">
             {formatPrice(product.price)}
           </p>,
@@ -99,14 +162,15 @@ export function ProductDetail({ product }: { product: Product }) {
           <div key="actions" className="mt-8 flex flex-wrap items-center gap-3">
             <QuantityStepper
               value={qty}
-              onChange={(v) => setQty(Math.max(1, v))}
+              onChange={(v) => setQty(Math.min(Math.max(1, v), Math.max(product.stock, 1)))}
               label={product.title}
             />
             <motion.button
               type="button"
               onClick={onAdd}
+              disabled={soldOut}
               whileTap={{ scale: 0.97 }}
-              className="relative h-12 flex-1 overflow-hidden rounded-full bg-ink px-8 text-sm font-semibold text-white hover:bg-black"
+              className="relative h-12 flex-1 overflow-hidden rounded-full bg-ink px-8 text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
             >
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span

@@ -9,28 +9,8 @@ export function formatPrice(value: number) {
   return priceFormatter.format(value);
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  electronics: "Electronics",
-  jewelery: "Jewelry",
-  "men's clothing": "Men's Clothing",
-  "women's clothing": "Women's Clothing",
-};
-
-export function categoryLabel(category: string) {
-  if (category === "all") return "All products";
-  return CATEGORY_LABELS[category] ?? category.replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-export function categoryHref(category: string) {
-  return `/collections/${encodeURIComponent(category)}`;
-}
-
-export function safeDecode(value: string) {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
+export function categoryHref(categoryId: number | "all", subId?: number) {
+  return `/collections/${categoryId}${subId ? `?sub=${subId}` : ""}`;
 }
 
 export function cn(...classes: Array<string | false | null | undefined>) {

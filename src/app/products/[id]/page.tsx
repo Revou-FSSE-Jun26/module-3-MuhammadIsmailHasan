@@ -3,14 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/home/ProductGrid";
 import { ProductDetail } from "@/components/product/ProductDetail";
-import { getProduct, getProductsByCategory } from "@/lib/api";
-import { categoryHref, categoryLabel } from "@/lib/format";
+import { getProduct, getProducts } from "@/lib/api";
+import { categoryHref } from "@/lib/format";
 
 type Params = Promise<{ id: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
-  const product = await getProduct(Number(id));
+  const product = Number.isFinite(Number(id)) ? await getProduct(Number(id)) : null;
   return {
     title: product?.title ?? "Product not found",
     description: product?.description.slice(0, 150),
@@ -22,9 +22,11 @@ export default async function ProductPage({ params }: { params: Params }) {
   const product = Number.isFinite(Number(id)) ? await getProduct(Number(id)) : null;
   if (!product) notFound();
 
-  const related = (await getProductsByCategory(product.category))
-    .filter((p) => p.id !== product.id)
-    .slice(0, 5);
+  const related = product.subCategoryId
+    ? (await getProducts({ sub_category_id: product.subCategoryId, limit: 6 })).items
+        .filter((p) => p.id !== product.id)
+        .slice(0, 5)
+    : [];
 
   return (
     <>
@@ -34,10 +36,18 @@ export default async function ProductPage({ params }: { params: Params }) {
             Home
           </Link>{" "}
           /{" "}
-          <Link href={categoryHref(product.category)} className="hover:text-ink">
-            {categoryLabel(product.category)}
-          </Link>{" "}
-          / <span className="text-ink">{product.title}</span>
+          {product.categoryId && product.subCategoryId ? (
+            <>
+              <Link
+                href={categoryHref(product.categoryId, product.subCategoryId)}
+                className="hover:text-ink"
+              >
+                {product.subCategory}
+              </Link>{" "}
+              /{" "}
+            </>
+          ) : null}
+          <span className="text-ink">{product.title}</span>
         </nav>
         <ProductDetail product={product} />
       </div>

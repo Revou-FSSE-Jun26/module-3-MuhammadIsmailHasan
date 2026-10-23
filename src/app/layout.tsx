@@ -7,6 +7,7 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
+import { getCategories } from "@/lib/api";
 import { siteConfig } from "@/lib/site";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -20,7 +21,8 @@ export const metadata: Metadata = {
   description: "A modern, animated Next.js storefront theme.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const categories = await getCategories().catch(() => []);
   return (
     <html lang="en" className={jakarta.variable}>
       <body className="overflow-x-clip font-sans">
@@ -33,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </a>
           <ScrollProgress />
           <AnnouncementBar />
-          <Header />
+          <Header categories={categories} />
           <main id="main">{children}</main>
           <Footer />
           <CartDrawer />

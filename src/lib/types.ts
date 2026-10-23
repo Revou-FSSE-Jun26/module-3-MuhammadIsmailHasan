@@ -92,7 +92,7 @@ export type ProductQuery = {
   seller_id?: number;
   min_price?: number;
   max_price?: number;
-  sort_by?: "name" | "price" | "created_at";
+  sort_by?: "id" | "name" | "price" | "created_at";
   order?: "asc" | "desc";
   page?: number;
   limit?: number;
@@ -131,15 +131,20 @@ export type CreateOrderPayload = {
   address_id?: number;
 };
 
-// ---------- UI (legacy theme shape, replaced in Step 1) ----------
+// ---------- UI view-model (what components render; built by toProduct in api.ts) ----------
 export type Product = {
   id: number;
+  slug: string;
   title: string;
   price: number;
+  stock: number;
   description: string;
-  category: string;
   image: string;
-  rating: { rate: number; count: number };
+  images: string[];
+  category: string;
+  categoryId: number | null;
+  subCategory: string;
+  subCategoryId: number | null;
 };
 
 export type CartItem = {

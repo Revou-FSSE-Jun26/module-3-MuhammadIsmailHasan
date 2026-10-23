@@ -6,10 +6,11 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/
 import { useState, type FormEvent } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { Icon } from "@/components/ui/Icon";
-import { cn, formatPrice } from "@/lib/format";
+import { categoryHref, cn, formatPrice } from "@/lib/format";
+import type { Category } from "@/lib/types";
 import { siteConfig } from "@/lib/site";
 
-export function Header() {
+export function Header({ categories }: { categories: Category[] }) {
   const { count, subtotal, open, wishlist } = useCart();
   const pathname = usePathname();
   const router = useRouter();
@@ -19,7 +20,12 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  // Hide on scroll down, reveal on scroll up
+  const mainNav = siteConfig.mainNav.flatMap((item) =>
+    item.label === "Catalog"
+      ? [item, ...categories.slice(0, 5).map((c) => ({ label: c.name, href: categoryHref(c.id) }))]
+      : [item],
+  );
+
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = scrollY.getPrevious() ?? 0;
     setScrolled(y > 10);
@@ -139,11 +145,13 @@ export function Header() {
           aria-label="Main"
         >
           <ul className="flex gap-8">
-            {siteConfig.mainNav.map((item) => {
+            {mainNav.map((item) => {
               const active =
                 item.href === "/"
                   ? pathname === "/"
-                  : pathname.startsWith(item.href.split("#")[0]) && item.href !== "/#newsletter";
+                  : item.href !== "/#newsletter" &&
+                    (pathname === item.href.split("#")[0] ||
+                      pathname.startsWith(`${item.href.split("#")[0]}/`));
               return (
                 <li key={item.label}>
                   <Link href={item.href} className="group relative py-3 text-sm font-semibold">
@@ -221,7 +229,7 @@ export function Header() {
                   show: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
                 }}
               >
-                {[...siteConfig.mainNav, ...siteConfig.secondaryNav].map((item) => (
+                {[...mainNav, ...siteConfig.secondaryNav].map((item) => (
                   <motion.li
                     key={item.label}
                     variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}

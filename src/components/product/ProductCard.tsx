@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { Icon } from "@/components/ui/Icon";
-import { categoryLabel, cn, formatPrice } from "@/lib/format";
+import { cn, formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
 
@@ -27,6 +27,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
   const [added, setAdded] = useState(false);
   const wished = wishlist.includes(product.id);
   const href = `/products/${product.id}`;
+  const soldOut = product.stock <= 0;
 
   function quickAdd() {
     add(product);
@@ -72,7 +73,8 @@ export function ProductCard({ product, priority }: { product: Product; priority?
           <button
             type="button"
             onClick={quickAdd}
-            className="relative flex h-11 w-full items-center justify-center overflow-hidden rounded-full bg-ink text-sm font-semibold text-white hover:bg-black"
+            disabled={soldOut}
+            className="relative flex h-11 w-full items-center justify-center overflow-hidden rounded-full bg-ink text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
           >
             <AnimatePresence mode="wait" initial={false}>
               {added ? (
@@ -103,7 +105,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
 
       <div className="mt-3 flex flex-1 flex-col gap-1">
         <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
-          {categoryLabel(product.category)}
+          {product.subCategory || "RevoShop"}
         </p>
         <Link
           href={href}
@@ -113,7 +115,9 @@ export function ProductCard({ product, priority }: { product: Product; priority?
         </Link>
         <div className="mt-auto flex items-center justify-between pt-1">
           <span className="text-sm font-bold">{formatPrice(product.price)}</span>
-          <Stars rate={product.rating.rate} />
+          <span className={cn("text-xs", product.stock > 0 ? "text-muted" : "text-coral")}>
+            {product.stock > 0 ? `${product.stock} in stock` : "Sold out"}
+          </span>
         </div>
       </div>
     </motion.article>

@@ -5,7 +5,6 @@ import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { Scene } from "@/components/illustrations/Scene";
 import { ProductImage } from "@/components/product/ProductImage";
-import { Stars } from "@/components/product/ProductCard";
 import { useCart } from "@/components/cart/CartProvider";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
@@ -48,10 +47,7 @@ export function Recommend({ product }: { product?: Product }) {
           <div className="mt-4 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 className="line-clamp-2 text-sm font-semibold">{product.title}</h3>
-              <div className="mt-1 flex items-center gap-2">
-                <Stars rate={product.rating.rate} />
-                <span className="text-xs text-muted">({product.rating.count})</span>
-              </div>
+              <p className="mt-1 text-xs text-muted">{product.subCategory}</p>
             </div>
             <span className="shrink-0 font-bold">{formatPrice(product.price)}</span>
           </div>
