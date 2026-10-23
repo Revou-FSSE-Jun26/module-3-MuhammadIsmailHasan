@@ -38,6 +38,20 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   revalidate?: number | false;
 };
 
+function errorMessage(json: unknown, fallback: string): string {
+  const body = json as {
+    message?: string;
+    msg?: string;
+    errors?: Record<string, Record<string, string[]> | string[]>;
+  } | null;
+  if (body?.message) return body.message;
+  if (body?.msg) return body.msg;
+  const first = Object.values(body?.errors ?? {}).flatMap((group) =>
+    Array.isArray(group) ? group : Object.values(group).flat(),
+  )[0];
+  return first ?? fallback;
+}
+
 function buildUrl(path: string, query?: RequestOptions["query"]) {
   const url = new URL(`${API_BASE_URL}${path}`);
   for (const [key, value] of Object.entries(query ?? {})) {
@@ -65,7 +79,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const json = await res.json().catch(() => null);
 
   if (!res.ok || json?.status === false) {
-    throw new ApiError(res.status, json?.message ?? res.statusText);
+    throw new ApiError(res.status, errorMessage(json, res.statusText));
   }
 
   return json as T;

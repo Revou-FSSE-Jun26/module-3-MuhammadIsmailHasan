@@ -105,7 +105,7 @@ export function ProductDetail({ product }: { product: Product }) {
         </motion.div>
 
         {gallery.length > 1 && (
-          <ul className="flex gap-3 overflow-x-auto" aria-label="Product images">
+          <ul className="flex gap-3 overflow-x-auto p-3" aria-label="Product images">
             {gallery.map((src, i) => (
               <li key={`${src}-${i}`}>
                 <button

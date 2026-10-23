@@ -4,14 +4,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useState, type FormEvent } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/components/cart/CartProvider";
 import { Icon } from "@/components/ui/Icon";
+import { ROLE_HOME } from "@/lib/auth";
 import { categoryHref, cn, formatPrice } from "@/lib/format";
 import type { Category } from "@/lib/types";
 import { siteConfig } from "@/lib/site";
 
 export function Header({ categories }: { categories: Category[] }) {
   const { count, subtotal, open, wishlist } = useCart();
+  const { user, status, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const { scrollY } = useScroll();
@@ -19,6 +22,13 @@ export function Header({ categories }: { categories: Category[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  const accountNav = user
+    ? [{ label: "Dashboard", href: ROLE_HOME[user.role] }]
+    : [
+        { label: "Sign in", href: "/login" },
+        { label: "Create account", href: "/register" },
+      ];
 
   const mainNav = siteConfig.mainNav.flatMap((item) =>
     item.label === "Catalog"
@@ -107,12 +117,29 @@ export function Header({ categories }: { categories: Category[] }) {
               </span>
             </a>
             <Link
-              href="#"
-              className="hidden size-11 place-items-center rounded-full hover:bg-[#f3f3f3] sm:grid"
-              aria-label="Account"
+              href={user ? ROLE_HOME[user.role] : "/login"}
+              className="hidden items-center gap-2 rounded-full hover:bg-[#f3f3f3] sm:flex sm:h-11 sm:px-3"
+              aria-label={user ? "Dashboard" : "Sign in"}
             >
               <Icon name="user" size={21} />
+              {status === "ready" && (
+                <span className="max-w-24 truncate text-xs font-semibold">
+                  {user ? user.username : "Sign in"}
+                </span>
+              )}
             </Link>
+            {user && (
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  router.push("/");
+                }}
+                className="hidden h-11 rounded-full px-3 text-xs font-semibold text-muted hover:bg-[#f3f3f3] hover:text-ink sm:block"
+              >
+                Logout
+              </button>
+            )}
             <Link
               href="/collections/all"
               className="relative hidden size-11 place-items-center rounded-full hover:bg-[#f3f3f3] sm:grid"
@@ -229,7 +256,7 @@ export function Header({ categories }: { categories: Category[] }) {
                   show: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
                 }}
               >
-                {[...mainNav, ...siteConfig.secondaryNav].map((item) => (
+                {[...mainNav, ...accountNav, ...siteConfig.secondaryNav].map((item) => (
                   <motion.li
                     key={item.label}
                     variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
@@ -242,6 +269,22 @@ export function Header({ categories }: { categories: Category[] }) {
                     </Link>
                   </motion.li>
                 ))}
+                {user && (
+                  <motion.li
+                    variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout();
+                        router.push("/");
+                      }}
+                      className="block w-full border-b border-line py-4 text-left text-lg font-semibold"
+                    >
+                      Logout
+                    </button>
+                  </motion.li>
+                )}
               </motion.ul>
             </motion.aside>
           </>
