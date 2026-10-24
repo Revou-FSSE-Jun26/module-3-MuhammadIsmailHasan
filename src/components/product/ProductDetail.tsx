@@ -6,6 +6,7 @@ import { useCart } from "@/components/cart/CartProvider";
 import { QuantityStepper } from "@/components/cart/CartDrawer";
 import { Icon } from "@/components/ui/Icon";
 import { cn, formatPrice } from "@/lib/format";
+import { siteConfig } from "@/lib/site";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
 
@@ -201,10 +202,11 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>,
           <ul key="perks" className="mt-8 space-y-3 border-t border-line pt-6 text-sm">
             <li className="flex items-center gap-3">
-              <Icon name="truck" size={18} /> Free shipping on orders over $100
+              <Icon name="truck" size={18} /> Free shipping on orders over{" "}
+              {formatPrice(siteConfig.freeShippingThreshold)}
             </li>
             <li className="flex items-center gap-3">
-              <Icon name="shield" size={18} /> 30-day returns & 1-year warranty
+              <Icon name="shield" size={18} /> Track your order from your dashboard
             </li>
           </ul>,
         ].map((node) => (

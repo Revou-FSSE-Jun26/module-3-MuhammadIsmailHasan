@@ -113,7 +113,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
         >
           {product.title}
         </Link>
-        <div className="mt-auto flex items-center justify-between pt-1">
+        <div className="mt-auto flex flex-col gap-0.5 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-bold">{formatPrice(product.price)}</span>
           <span className={cn("text-xs", product.stock > 0 ? "text-muted" : "text-coral")}>
             {product.stock > 0 ? `${product.stock} in stock` : "Sold out"}
