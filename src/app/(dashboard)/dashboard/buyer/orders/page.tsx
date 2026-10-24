@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/dashboard/ComingSoon";
+import { OrdersList } from "@/components/orders/OrdersList";
 
 export const metadata: Metadata = { title: "My orders" };
 
-export default function Page() {
-  return <ComingSoon title="My orders" step="Step 5" />;
+export default function BuyerOrdersPage() {
+  return <OrdersList role="buyer" />;
 }
