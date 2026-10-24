@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+import { Spinner } from "@/components/ui/Spinner";
 import { ApiError } from "@/lib/api";
 import { ROLE_HOME, safeNext } from "@/lib/auth";
 import { useAuth } from "./AuthProvider";
@@ -67,6 +68,7 @@ export function LoginForm() {
         />
         <FormError message={error} />
         <button type="submit" disabled={pending} className={buttonClass}>
+          {pending && <Spinner className="mr-2 size-4 align-[-3px]" />}
           {pending ? "Signing in…" : "Sign in"}
         </button>
         {pending && (

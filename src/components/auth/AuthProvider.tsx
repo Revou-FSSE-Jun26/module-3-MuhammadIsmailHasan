@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -20,6 +21,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<User>;
   register: (payload: RegisterPayload) => Promise<User>;
   logout: () => void;
+  authed: <T>(run: (token: string) => Promise<T>) => Promise<T>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -89,6 +91,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => persist(null), [persist]);
 
+  const sessionRef = useRef(session);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  const authed = useCallback(
+    async <T,>(run: (token: string) => Promise<T>): Promise<T> => {
+      const current = sessionRef.current;
+      if (!current) throw new ApiError(401, "Please sign in first.", true);
+      try {
+        return await run(current.accessToken);
+      } catch (error) {
+        if (!(error instanceof ApiError) || !error.jwt) throw error;
+        try {
+          const { access_token } = await authApi.refresh(current.refreshToken);
+          const next = { ...current, accessToken: access_token };
+          sessionRef.current = next;
+          persist(next);
+          return await run(access_token);
+        } catch (refreshError) {
+          if (refreshError instanceof ApiError && refreshError.jwt) persist(null);
+          throw refreshError;
+        }
+      }
+    },
+    [persist],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user: session?.user ?? null,
@@ -97,8 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      authed,
     }),
-    [session, status, login, register, logout],
+    [session, status, login, register, logout, authed],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

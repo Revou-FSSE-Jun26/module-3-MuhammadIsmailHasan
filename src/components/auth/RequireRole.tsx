@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import { LoadingBlock } from "@/components/ui/Spinner";
 import { ROLE_HOME, guardState } from "@/lib/auth";
 import type { Role } from "@/lib/types";
 import { useAuth } from "./AuthProvider";
@@ -37,7 +38,7 @@ export function RequireRole({ allow, children }: { allow: Role[]; children: Reac
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6" aria-busy="true">
-      <div className="h-10 w-64 animate-pulse rounded-full bg-[#f2f2f2]" />
+      <LoadingBlock label="Checking your session…" />
     </div>
   );
 }

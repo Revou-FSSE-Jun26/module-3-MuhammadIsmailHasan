@@ -71,7 +71,7 @@ export function AuthShell({
   );
 }
 
-const inputClass =
+export const inputClass =
   "h-12 w-full rounded-xl border border-line bg-white px-4 text-sm outline-none transition focus:border-ink focus:ring-4 focus:ring-ink/5";
 
 export const buttonClass =
