@@ -34,7 +34,7 @@ export const siteConfig = {
       subtitle:
         "Fashion, gadgets and everyday essentials from sellers you can browse in one place.",
       cta: { label: "Start shopping", href: "/collections/all" },
-      image: "/images/hero-3.jpg",
+      image: "/images/hero-3.png",
       tone: "light" as "light" | "dark",
       position: "30% center",
     },
@@ -43,7 +43,7 @@ export const siteConfig = {
       title: "Fresh Finds Every Week",
       subtitle: "Discover the newest products added by our sellers.",
       cta: { label: "See what's new", href: "/collections/all?sort=newest" },
-      image: "/images/hero-2.jpg",
+      image: "/images/hero-2.png",
       tone: "dark" as "light" | "dark",
       position: "15% center",
     },
@@ -53,7 +53,7 @@ export const siteConfig = {
       subtitle:
         "Create a seller account, list your products and manage orders from your dashboard.",
       cta: { label: "Become a seller", href: "/register" },
-      image: "/images/hero-1.jpg",
+      image: "/images/hero-1.png",
       tone: "light" as "light" | "dark",
       position: "50% center",
     },
