@@ -16,3 +16,12 @@ export function categoryHref(categoryId: number | "all", subId?: number) {
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
+
+const dateFormatter = new Intl.DateTimeFormat(siteConfig.locale, {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+
+export function formatDate(value: string | null | undefined) {
+  return value ? dateFormatter.format(new Date(value)) : "-";
+}

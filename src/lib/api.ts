@@ -1,6 +1,9 @@
 import type {
+  Address,
+  AddressPayload,
   ApiEnvelope,
   Category,
+  CategoryPayload,
   CreateOrderPayload,
   LoginResponse,
   Order,
@@ -8,10 +11,13 @@ import type {
   Paginated,
   Product,
   ProductDetail,
+  ProductImage,
+  ProductPayload,
   ProductQuery,
   ProductSummary,
   RegisterPayload,
   SubCategory,
+  SubCategoryPayload,
   User,
 } from "./types";
 
@@ -25,6 +31,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public jwt = false,
   ) {
     super(message);
     this.name = "ApiError";
@@ -79,7 +86,8 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const json = await res.json().catch(() => null);
 
   if (!res.ok || json?.status === false) {
-    throw new ApiError(res.status, errorMessage(json, res.statusText));
+    const jwt = res.status === 401 || (json !== null && typeof json === "object" && "msg" in json);
+    throw new ApiError(res.status, errorMessage(json, res.statusText), jwt);
   }
 
   return json as T;
@@ -121,13 +129,60 @@ export const productApi = {
       query,
       revalidate: CATALOG_REVALIDATE,
     }).then(paged),
-  get: (id: number) =>
+  get: (id: number, fresh = false) =>
     request<ApiEnvelope<ProductDetail>>(`/products/${id}`, {
-      revalidate: CATALOG_REVALIDATE,
+      revalidate: fresh ? undefined : CATALOG_REVALIDATE,
     }).then(unwrap),
-  getBySlug: (slug: string) =>
+  create: (token: string, payload: ProductPayload) =>
+    request<ApiEnvelope<ProductSummary>>("/products/", {
+      method: "POST",
+      token,
+      body: payload,
+    }).then(unwrap),
+  update: (token: string, id: number, payload: Partial<ProductPayload>) =>
+    request<ApiEnvelope<ProductSummary>>(`/products/${id}`, {
+      method: "PUT",
+      token,
+      body: payload,
+    }).then(unwrap),
+  remove: (token: string, id: number) =>
+    request<ApiEnvelope<never>>(`/products/${id}`, { method: "DELETE", token }),
+  getBySlug: (slug: string, fresh = false) =>
     request<ApiEnvelope<ProductDetail>>(`/products/slug/${encodeURIComponent(slug)}`, {
-      revalidate: CATALOG_REVALIDATE,
+      revalidate: fresh ? undefined : CATALOG_REVALIDATE,
+    }).then(unwrap),
+};
+
+const imagesPath = (productId: number) => `/products/${productId}/images`;
+
+export const productImageApi = {
+  list: (productId: number) =>
+    request<ApiEnvelope<ProductImage[]>>(`${imagesPath(productId)}/`).then(unwrap),
+  addUrl: (token: string, productId: number, url: string) =>
+    request<ApiEnvelope<ProductImage>>(`${imagesPath(productId)}/`, {
+      method: "POST",
+      token,
+      body: { url },
+    }).then(unwrap),
+  upload: (token: string, productId: number, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request<ApiEnvelope<ProductImage>>(`${imagesPath(productId)}/upload`, {
+      method: "POST",
+      token,
+      body: form,
+    }).then(unwrap);
+  },
+  remove: (token: string, productId: number, imageId: number) =>
+    request<ApiEnvelope<never>>(`${imagesPath(productId)}/${imageId}`, {
+      method: "DELETE",
+      token,
+    }),
+  reorder: (token: string, productId: number, imageIds: number[]) =>
+    request<ApiEnvelope<ProductImage[]>>(`${imagesPath(productId)}/reorder`, {
+      method: "PUT",
+      token,
+      body: { image_ids: imageIds },
     }).then(unwrap),
 };
 
@@ -141,9 +196,35 @@ export const categoryApi = {
     request<ApiEnvelope<Category>>(`/categories/${id}`, { revalidate: CATALOG_REVALIDATE }).then(
       unwrap,
     ),
+  create: (token: string, payload: CategoryPayload) =>
+    request<ApiEnvelope<Category>>("/categories/", { method: "POST", token, body: payload }).then(
+      unwrap,
+    ),
+  update: (token: string, id: number, payload: CategoryPayload) =>
+    request<ApiEnvelope<Category>>(`/categories/${id}`, {
+      method: "PUT",
+      token,
+      body: payload,
+    }).then(unwrap),
+  remove: (token: string, id: number) =>
+    request<ApiEnvelope<never>>(`/categories/${id}`, { method: "DELETE", token }),
 };
 
 export const subCategoryApi = {
+  create: (token: string, payload: SubCategoryPayload) =>
+    request<ApiEnvelope<SubCategory>>("/sub-categories/", {
+      method: "POST",
+      token,
+      body: payload,
+    }).then(unwrap),
+  update: (token: string, id: number, payload: Partial<SubCategoryPayload>) =>
+    request<ApiEnvelope<SubCategory>>(`/sub-categories/${id}`, {
+      method: "PUT",
+      token,
+      body: payload,
+    }).then(unwrap),
+  remove: (token: string, id: number) =>
+    request<ApiEnvelope<never>>(`/sub-categories/${id}`, { method: "DELETE", token }),
   list: () =>
     request<ApiEnvelope<SubCategory[]>>("/sub-categories/", {
       query: { limit: 100 },
@@ -151,18 +232,32 @@ export const subCategoryApi = {
     }).then(unwrap),
 };
 
+// ---------- Addresses ----------
+export const addressApi = {
+  list: (token: string) => request<ApiEnvelope<Address[]>>("/addresses", { token }).then(unwrap),
+  create: (token: string, payload: AddressPayload) =>
+    request<ApiEnvelope<Address>>("/addresses", { method: "POST", token, body: payload }).then(
+      unwrap,
+    ),
+};
+
 // ---------- Orders ----------
 export const orderApi = {
-  list: (token: string, page = 1) =>
-    request<ApiEnvelope<Order[]>>("/orders/", { token, query: { page } }).then(paged),
+  list: (token: string, page = 1, status?: OrderStatus | "") =>
+    request<ApiEnvelope<Order[]>>("/orders/", {
+      token,
+      query: { page, status: status || undefined },
+    }).then(paged),
   get: (token: string, id: number) =>
     request<ApiEnvelope<Order>>(`/orders/${id}`, { token }).then(unwrap),
   create: (token: string, payload: CreateOrderPayload) =>
     request<ApiEnvelope<Order>>("/orders/", { method: "POST", token, body: payload }).then(unwrap),
-  updateStatus: (token: string, id: number, status: OrderStatus) =>
-    request<ApiEnvelope<Order>>(`/orders/${id}`, { method: "PUT", token, body: { status } }).then(
-      unwrap,
-    ),
+  updateStatus: (token: string, id: number, status: OrderStatus, trackingId?: string) =>
+    request<ApiEnvelope<Order>>(`/orders/${id}`, {
+      method: "PUT",
+      token,
+      body: { status, ...(trackingId ? { tracking_id: trackingId } : {}) },
+    }).then(unwrap),
 };
 
 // ---------- View-model mapper + page-level readers ----------

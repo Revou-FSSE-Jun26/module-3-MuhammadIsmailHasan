@@ -100,7 +100,13 @@ export type ProductQuery = {
 
 // ---------- Orders ----------
 export type OrderStatus =
-  "pending" | "paid" | "processing" | "shipped" | "delivered" | "returned" | "cancelled";
+  | "waiting_for_payment"
+  | "paid"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "returned"
+  | "cancelled";
 
 export type OrderItem = {
   id: number;
@@ -109,6 +115,14 @@ export type OrderItem = {
   unit_price: number;
   quantity: number;
   sub_total: number;
+  product?: {
+    id: number;
+    name: string;
+    slug: string;
+    price: number;
+    stock: number;
+    image: string | null;
+  } | null;
 };
 
 export type Order = {
@@ -123,8 +137,43 @@ export type Order = {
   shipping_address_line: string | null;
   shipping_city: string | null;
   shipping_postal_code: string | null;
+  total_items?: number;
+  total_quantity?: number;
+  refund_note?: string | null;
   items?: OrderItem[];
 };
+
+export type Address = {
+  id: number;
+  label: string | null;
+  recipient_name: string;
+  phone: string;
+  address_line: string;
+  city: string;
+  postal_code: string | null;
+  is_default: boolean;
+};
+
+export type AddressPayload = {
+  label?: string;
+  recipient_name: string;
+  phone: string;
+  address_line: string;
+  city: string;
+  postal_code?: string;
+  is_default?: boolean;
+};
+
+export type ProductPayload = {
+  name: string;
+  price: number;
+  stock: number;
+  description?: string;
+  sub_category_id?: number;
+};
+
+export type CategoryPayload = { name: string; image?: string };
+export type SubCategoryPayload = { name: string; category_id: number; image?: string };
 
 export type CreateOrderPayload = {
   items: { product_id: number; quantity: number }[];
