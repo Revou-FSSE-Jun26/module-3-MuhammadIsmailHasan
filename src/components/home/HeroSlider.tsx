@@ -38,7 +38,7 @@ export function HeroSlider() {
 
   return (
     <section
-      className="relative h-[560px] overflow-hidden bg-cream sm:h-[640px] lg:h-[720px]"
+      className="relative h-[700px] overflow-hidden bg-cream lg:h-[720px]"
       aria-roledescription="carousel"
       aria-label="Featured"
       onMouseEnter={() => setPaused(true)}
@@ -58,7 +58,7 @@ export function HeroSlider() {
           animate="center"
           exit="exit"
           transition={{ duration: 1.1, ease: EASE }}
-          style={{ zIndex: 1 }}
+          style={{ zIndex: 1, background: slide.bg }}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.15}
@@ -72,28 +72,50 @@ export function HeroSlider() {
             animate={{ scale: 1 }}
             transition={{ duration: 6.5, ease: "easeOut" }}
           >
-            <Image
-              src={slide.image}
-              alt=""
-              fill
-              priority={index === 0}
-              sizes="100vw"
-              className="object-cover"
-              style={{ objectPosition: slide.position }}
-            />
+            {slide.layout === "split" ? (
+              <div className="absolute inset-x-0 top-0 h-[340px] [mask-image:linear-gradient(to_bottom,black_85%,transparent)] sm:h-[400px] lg:inset-x-auto lg:-right-[22%] lg:h-full lg:w-[1200px] lg:[mask-image:linear-gradient(to_right,transparent,black_22%)] xl:-right-[12%]">
+                <Image
+                  src={slide.image}
+                  alt=""
+                  fill
+                  priority={index === 0}
+                  sizes="(min-width: 1024px) 1200px, 100vw"
+                  className="origin-top scale-[1.02] object-cover"
+                  style={{ objectPosition: slide.position }}
+                />
+              </div>
+            ) : (
+              <Image
+                src={slide.image}
+                alt=""
+                fill
+                priority={index === 0}
+                sizes="100vw"
+                className="object-cover"
+                style={{ objectPosition: slide.position }}
+              />
+            )}
           </motion.div>
           <div
             className={cn(
               "absolute inset-0",
-              slide.tone === "light" &&
+              slide.layout === "full" &&
+                slide.tone === "light" &&
                 "bg-linear-to-t from-black/65 via-black/30 to-black/20 sm:bg-linear-to-r sm:from-black/10 sm:via-black/25 sm:to-black/60",
             )}
           />
 
-          <div className="relative mx-auto flex h-full max-w-7xl items-end justify-end px-4 pb-28 sm:items-center sm:px-6 sm:pb-0">
+          <div
+            className={cn(
+              "relative mx-auto flex h-full max-w-7xl items-end px-4 pb-24 sm:px-6",
+              slide.align === "left" ? "justify-start" : "justify-end sm:items-center sm:pb-0",
+              slide.layout === "split" && "lg:items-center lg:pb-0",
+            )}
+          >
             <div
               className={cn(
-                "max-w-xl text-right",
+                "max-w-xl",
+                slide.align === "left" ? "text-left lg:max-w-lg" : "text-right",
                 slide.tone === "light"
                   ? "text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)]"
                   : "text-ink",
@@ -111,7 +133,10 @@ export function HeroSlider() {
                 <SplitText text={slide.title} delay={0.6} animateOnMount />
               </h1>
               <motion.p
-                className="ml-auto mt-4 max-w-md text-base sm:text-lg"
+                className={cn(
+                  "mt-4 max-w-md text-base sm:text-lg",
+                  slide.align === "left" ? "mr-auto" : "ml-auto",
+                )}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1, duration: 0.7, ease: EASE }}
