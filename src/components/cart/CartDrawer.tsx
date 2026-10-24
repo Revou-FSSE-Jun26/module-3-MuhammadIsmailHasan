@@ -181,12 +181,13 @@ export function CartDrawer() {
                 <p className="mt-1 text-xs text-muted">
                   Taxes and shipping calculated at checkout.
                 </p>
-                <button
-                  type="button"
-                  className="mt-4 h-12 w-full rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
+                <Link
+                  href="/checkout"
+                  onClick={close}
+                  className="mt-4 grid h-12 w-full place-items-center rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
                 >
                   Checkout
-                </button>
+                </Link>
               </div>
             )}
           </motion.aside>

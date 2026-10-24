@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { clampQuantity } from "@/lib/cart";
 import type { CartItem, Product } from "@/lib/types";
 
 type CartContextValue = {
@@ -21,6 +22,7 @@ type CartContextValue = {
   add: (product: Product, quantity?: number) => void;
   setQuantity: (id: number, quantity: number) => void;
   remove: (id: number) => void;
+  clear: () => void;
   wishlist: number[];
   toggleWish: (id: number) => void;
 };
@@ -82,9 +84,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existing = current.items.find((i) => i.product.id === product.id);
       const nextItems = existing
         ? current.items.map((i) =>
-            i.product.id === product.id ? { ...i, quantity: i.quantity + quantity } : i,
+            i.product.id === product.id
+              ? { ...i, quantity: clampQuantity(i.quantity + quantity, product.stock) }
+              : i,
           )
-        : [...current.items, { product, quantity }];
+        : [...current.items, { product, quantity: clampQuantity(quantity, product.stock) }];
       return { ...current, items: nextItems };
     });
     setIsOpen(true);
@@ -96,12 +100,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items:
         quantity <= 0
           ? current.items.filter((i) => i.product.id !== id)
-          : current.items.map((i) => (i.product.id === id ? { ...i, quantity } : i)),
+          : current.items.map((i) =>
+              i.product.id === id
+                ? { ...i, quantity: clampQuantity(quantity, i.product.stock) }
+                : i,
+            ),
     }));
   }, []);
 
   const remove = useCallback((id: number) => {
     update((current) => ({ ...current, items: current.items.filter((i) => i.product.id !== id) }));
+  }, []);
+
+  const clear = useCallback(() => {
+    update((current) => ({ ...current, items: [] }));
   }, []);
 
   const toggleWish = useCallback((id: number) => {
@@ -126,10 +138,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       add,
       setQuantity,
       remove,
+      clear,
       wishlist,
       toggleWish,
     };
-  }, [items, isOpen, add, setQuantity, remove, wishlist, toggleWish]);
+  }, [items, isOpen, add, setQuantity, remove, clear, wishlist, toggleWish]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
