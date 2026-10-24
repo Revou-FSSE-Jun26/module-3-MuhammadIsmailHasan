@@ -122,7 +122,7 @@ export function HeroSlider() {
               )}
             >
               <motion.span
-                className="inline-block rounded-full bg-ink/85 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest"
+                className="inline-block rounded-full bg-ink/85 px-4 py-1.5 text-xs text-white font-semibold uppercase tracking-widest"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.6, ease: EASE }}
