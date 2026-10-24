@@ -11,168 +11,155 @@ export const siteConfig = {
   address: "Jl. Ir. Soekarno, Ngawi, Jawa Timur",
 
   announcements: [
-    "Free shipping on orders over $100",
-    "30-day hassle-free returns",
-    "New arrivals every week — shop the latest drops",
+    "Free shipping on orders over Rp 1.000.000",
+    "New products added every week",
+    "A learning project — all data is for demo purposes",
   ],
 
   mainNav: [
     { label: "Home", href: "/" },
     { label: "Catalog", href: "/collections/all" },
-    { label: "Contact", href: "/#newsletter" },
+    { label: "Contact", href: "/#contact" },
   ],
 
   secondaryNav: [
-    { label: "Track order", href: "#" },
+    { label: "Track order", href: "/dashboard/buyer/orders" },
     { label: "Shipping & Delivery", href: "/#faq" },
   ],
 
   heroSlides: [
     {
-      eyebrow: "New season",
-      title: "Time Meets Technology",
-      subtitle: "Navigate your day seamlessly with our innovative electronics.",
-      cta: {
-        label: "Shop electronics",
-        href: "/collections/all",
-      },
-      scene: "hills" as SceneVariant,
-      palette: "peach" as ScenePalette,
+      eyebrow: "Welcome to RevoShop",
+      title: "Everything You Need, One Cart",
+      subtitle:
+        "Fashion, gadgets and everyday essentials from sellers you can browse in one place.",
+      cta: { label: "Start shopping", href: "/collections/all" },
+      image: "/images/hero-3.jpg",
+      tone: "light" as "light" | "dark",
+      position: "30% center",
     },
     {
-      eyebrow: "Fresh drop",
-      title: "Style That Speaks",
-      subtitle: "Everyday clothing made for comfort, built to last.",
-      cta: {
-        label: "Shop clothing",
-        href: "/collections/all",
-      },
-      scene: "lake" as SceneVariant,
-      palette: "sunset" as ScenePalette,
+      eyebrow: "Just landed",
+      title: "Fresh Finds Every Week",
+      subtitle: "Discover the newest products added by our sellers.",
+      cta: { label: "See what's new", href: "/collections/all?sort=newest" },
+      image: "/images/hero-2.jpg",
+      tone: "dark" as "light" | "dark",
+      position: "15% center",
     },
     {
-      eyebrow: "Limited edition",
-      title: "Shine Every Moment",
-      subtitle: "Jewelry pieces picked for the little celebrations.",
-      cta: { label: "Shop jewelry", href: "/collections/all" },
-      scene: "dunes" as SceneVariant,
-      palette: "dusk" as ScenePalette,
+      eyebrow: "Sell with us",
+      title: "Open Your Own Shop",
+      subtitle:
+        "Create a seller account, list your products and manage orders from your dashboard.",
+      cta: { label: "Become a seller", href: "/register" },
+      image: "/images/hero-1.jpg",
+      tone: "light" as "light" | "dark",
+      position: "50% center",
     },
   ],
 
-  promoMarquee: ["Summer Sale", "Get 30% Off", "Free Returns", "New Arrivals"],
+  lookbook: {
+    eyebrow: "Shop the look",
+    title: "The everyday edit",
+    image: "/images/lookbook.png",
+  },
+
+  promoMarquee: [
+    "Free shipping over Rp 1.000.000",
+    "New arrivals weekly",
+    "Secure checkout",
+    "Made for learning",
+  ],
 
   features: [
     {
       icon: "truck",
-      title: "Free Shipping & Returns",
-      text: "Free shipping on orders over $100 and easy 30-day returns.",
+      title: "Free shipping",
+      text: "Orders over Rp 1.000.000 ship free. Smaller orders show their cost at checkout.",
     },
     {
       icon: "shield",
-      title: "Money Back Guarantee",
-      text: "Not happy with your order? Get a full refund, no questions asked.",
+      title: "Secure accounts",
+      text: "Sign in with protected sessions. Buyers, sellers and admins each see only their own tools.",
     },
     {
       icon: "support",
-      title: "Online Support 24/7",
-      text: "Our team is ready to help any time, any day of the week.",
+      title: "Track every order",
+      text: "Follow your order from payment to delivery right from your dashboard.",
     },
   ] as const,
 
-  testimonials: [
+  roles: [
     {
-      name: "[Customer name]",
-      role: "Verified buyer",
-      title: "A shop you can trust",
-      quote:
-        "[Replace with a real customer review. Keep it to two or three sentences so it reads well in the slider.]",
-      rating: 5,
+      title: "Buyer",
+      text: "Browse the catalogue, check out with a saved address and follow every order.",
+      cta: { label: "Create a buyer account", href: "/register" },
     },
     {
-      name: "[Customer name]",
-      role: "Verified buyer",
-      title: "Fast delivery",
-      quote: "[Replace with a real customer review about delivery, packaging or support.]",
-      rating: 5,
+      title: "Seller",
+      text: "List products with multiple images, manage stock and move orders through shipping.",
+      cta: { label: "Start selling", href: "/register" },
     },
     {
-      name: "[Customer name]",
-      role: "Verified buyer",
-      title: "Great quality",
-      quote: "[Replace with a real customer review about product quality.]",
-      rating: 4,
-    },
-  ],
-
-  news: [
-    {
-      title: "[Your blog post title]",
-      date: "2026-10-01",
-      tag: "Guides",
-      scene: "hills" as SceneVariant,
-      palette: "mint" as ScenePalette,
-    },
-    {
-      title: "[Your blog post title]",
-      date: "2026-09-20",
-      tag: "News",
-      scene: "lake" as SceneVariant,
-      palette: "peach" as ScenePalette,
-    },
-    {
-      title: "[Your blog post title]",
-      date: "2026-09-05",
-      tag: "Tips",
-      scene: "dunes" as SceneVariant,
-      palette: "sunset" as ScenePalette,
+      title: "Admin",
+      text: "Oversee every product and order, and organise categories and sub-categories.",
+      cta: { label: "Sign in", href: "/login" },
     },
   ],
 
   faqs: [
     {
-      q: "Is free shipping available?",
-      a: "Yes. Orders over $100 ship for free. Smaller orders use a flat shipping rate shown at checkout.",
+      q: "Is RevoShop a real store?",
+      a: "No. RevoShop is a learning project built for a full-stack bootcamp. You can browse, register and place orders, but nothing is actually sold or shipped.",
     },
     {
-      q: "Is the product I'm looking for in stock?",
-      a: "Stock levels are shown on every product page. Out-of-stock items can be added to your wishlist.",
+      q: "Is the product data real?",
+      a: "All products, prices, images and stock are sample data used for learning and demonstration only.",
     },
     {
-      q: "What are your return policies?",
-      a: "You can return any unused item within 30 days of delivery for a full refund.",
+      q: "Will I be charged when I place an order?",
+      a: "No. There is no payment gateway. Checkout creates an order record so you can try the full order flow.",
     },
     {
-      q: "Where will my order be sent by default?",
-      a: "Orders ship to the default address saved in your account. You can change it during checkout.",
+      q: "What can I do on the site?",
+      a: "Buyers browse and check out, sellers manage their own products and orders, and admins manage the whole catalogue.",
     },
     {
-      q: "Are you an authorized retailer?",
-      a: "Yes, we only sell genuine products sourced directly from brands or their official distributors.",
+      q: "Can I create an account to try it?",
+      a: "Yes. Register as a buyer or seller. Please do not use a password you use anywhere else.",
     },
     {
-      q: "What is covered by the 1-year warranty?",
-      a: "Manufacturing defects are covered for 12 months. Accidental damage is not included.",
+      q: "What is it built with?",
+      a: "Next.js, React, TypeScript, Tailwind CSS and Motion on the front end, talking to a Flask REST API with JWT authentication.",
     },
     {
-      q: "Is express shipping available?",
-      a: "Express shipping is available for most addresses and can be chosen at checkout.",
+      q: "Why is the first load slow?",
+      a: "The API runs on a free hosting tier that sleeps when idle. The first request can take up to a minute to wake it up.",
     },
     {
-      q: "Can I redeem a coupon online?",
-      a: "Yes — enter your code in the cart before checkout and the discount is applied instantly.",
+      q: "Where can I see the code?",
+      a: "The source is on GitHub, linked in the footer.",
     },
   ],
 
+  github: "https://github.com/MuhammadIsmailHasan",
+
   footer: [
     {
-      title: "Company",
-      links: ["About us", "Careers", "Press", "Contact"],
+      title: "Shop",
+      links: [
+        { label: "All products", href: "/collections/all" },
+        { label: "My orders", href: "/dashboard/buyer/orders" },
+        { label: "Sell on RevoShop", href: "/register" },
+      ],
     },
     {
-      title: "Shop",
-      links: ["All products", "New arrivals", "Best sellers", "Gift cards"],
+      title: "About",
+      links: [
+        { label: "FAQ", href: "/#faq" },
+        { label: "Sign in", href: "/login" },
+      ],
     },
-    { title: "Help", links: ["Shipping", "Returns", "Warranty", "FAQ"] },
   ],
 };

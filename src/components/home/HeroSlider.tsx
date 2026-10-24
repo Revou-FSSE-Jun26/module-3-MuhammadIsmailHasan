@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, type PanInfo } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
-import { Scene } from "@/components/illustrations/Scene";
 import { Icon } from "@/components/ui/Icon";
 import { SplitText } from "@/components/ui/Reveal";
+import { cn } from "@/lib/format";
 import { siteConfig } from "@/lib/site";
 
 const AUTOPLAY_MS = 6000;
@@ -65,19 +66,39 @@ export function HeroSlider() {
           aria-roledescription="slide"
           aria-label={`${index + 1} of ${slides.length}`}
         >
-          {/* Ken Burns zoom on the artwork */}
           <motion.div
             className="absolute inset-0"
             initial={{ scale: 1.15 }}
             animate={{ scale: 1 }}
             transition={{ duration: 6.5, ease: "easeOut" }}
           >
-            <Scene variant={slide.scene} palette={slide.palette} />
+            <Image
+              src={slide.image}
+              alt=""
+              fill
+              priority={index === 0}
+              sizes="100vw"
+              className="object-cover"
+              style={{ objectPosition: slide.position }}
+            />
           </motion.div>
-          <div className="absolute inset-0 bg-linear-to-r from-transparent via-transparent to-black/25" />
+          <div
+            className={cn(
+              "absolute inset-0",
+              slide.tone === "light" &&
+                "bg-linear-to-t from-black/65 via-black/30 to-black/20 sm:bg-linear-to-r sm:from-black/10 sm:via-black/25 sm:to-black/60",
+            )}
+          />
 
-          <div className="relative mx-auto flex h-full max-w-7xl items-center justify-end px-4 sm:px-6">
-            <div className="max-w-xl text-right text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.25)]">
+          <div className="relative mx-auto flex h-full max-w-7xl items-end justify-end px-4 pb-28 sm:items-center sm:px-6 sm:pb-0">
+            <div
+              className={cn(
+                "max-w-xl text-right",
+                slide.tone === "light"
+                  ? "text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)]"
+                  : "text-ink",
+              )}
+            >
               <motion.span
                 className="inline-block rounded-full bg-ink/85 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest"
                 initial={{ opacity: 0, y: 20 }}
@@ -104,7 +125,12 @@ export function HeroSlider() {
               >
                 <Link
                   href={slide.cta.href}
-                  className="group mt-8 inline-flex items-center gap-3 rounded-full bg-white px-7 py-4 text-sm font-bold text-ink transition hover:bg-ink hover:text-white"
+                  className={cn(
+                    "group mt-8 inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-bold transition",
+                    slide.tone === "light"
+                      ? "bg-white text-ink hover:bg-ink hover:text-white"
+                      : "bg-ink text-white hover:bg-black",
+                  )}
                 >
                   {slide.cta.label}
                   <span className="transition-transform duration-300 group-hover:translate-x-1">
@@ -117,7 +143,6 @@ export function HeroSlider() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Controls */}
       <div className="absolute inset-x-0 bottom-6 z-10 mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
         <div className="flex gap-2">
           {slides.map((s, i) => (
@@ -129,11 +154,19 @@ export function HeroSlider() {
               aria-label={`Go to slide ${i + 1}`}
               aria-current={i === index}
             >
-              <span className="block h-1 w-full overflow-hidden rounded-full bg-white/50">
+              <span
+                className={cn(
+                  "block h-1 w-full overflow-hidden rounded-full",
+                  slide.tone === "light" ? "bg-white/50" : "bg-ink/20",
+                )}
+              >
                 {i === index && (
                   <motion.span
                     key={`${index}-${paused}`}
-                    className="block h-full origin-left bg-white"
+                    className={cn(
+                      "block h-full origin-left",
+                      slide.tone === "light" ? "bg-white" : "bg-ink",
+                    )}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: paused ? 0 : 1 }}
                     transition={{ duration: paused ? 0 : AUTOPLAY_MS / 1000, ease: "linear" }}
@@ -147,7 +180,7 @@ export function HeroSlider() {
           <button
             type="button"
             onClick={() => go(-1)}
-            className="grid size-12 place-items-center rounded-full bg-white/90 text-ink transition hover:scale-105 hover:bg-white"
+            className="grid size-12 place-items-center rounded-full bg-ink text-white shadow-lg transition hover:scale-105 hover:bg-black"
             aria-label="Previous slide"
           >
             <Icon name="arrowLeft" size={18} />
@@ -155,7 +188,7 @@ export function HeroSlider() {
           <button
             type="button"
             onClick={() => go(1)}
-            className="grid size-12 place-items-center rounded-full bg-white/90 text-ink transition hover:scale-105 hover:bg-white"
+            className="grid size-12 place-items-center rounded-full bg-ink text-white shadow-lg transition hover:scale-105 hover:bg-black"
             aria-label="Next slide"
           >
             <Icon name="arrowRight" size={18} />
