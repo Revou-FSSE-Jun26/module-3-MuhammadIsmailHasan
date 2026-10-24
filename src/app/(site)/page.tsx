@@ -5,8 +5,8 @@ import { HeroSlider } from "@/components/home/HeroSlider";
 import { Lookbook } from "@/components/home/Lookbook";
 import { ProductGrid } from "@/components/home/ProductGrid";
 import { PromoMarquee } from "@/components/home/PromoMarquee";
-import { TechEssentials } from "@/components/home/TechEssentials";
-import { Testimonials } from "@/components/home/Testimonials";
+import { PopularPicks } from "@/components/home/PopularPicks";
+import { ProjectRoles } from "@/components/home/ProjectRoles";
 import { getCategories, getProducts } from "@/lib/api";
 
 export default async function HomePage() {
@@ -29,7 +29,7 @@ export default async function HomePage() {
         products={products.slice(0, 5)}
         link={{ href: "/collections/all", label: "Shop all" }}
       />
-      <TechEssentials products={products.slice(0, 6)} />
+      <PopularPicks products={products.slice(0, 6)} />
       <ProductGrid
         title="New arrivals"
         eyebrow="Just landed"
@@ -40,7 +40,7 @@ export default async function HomePage() {
       <Lookbook products={latest.items} />
       <PromoMarquee />
       <Features />
-      <Testimonials />
+      <ProjectRoles />
       <Faq />
     </>
   );

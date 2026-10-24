@@ -10,7 +10,7 @@ import type { Product } from "@/lib/types";
 
 const CARD_TINTS = ["#bfe0ef", "#e7d6c8", "#d6e6d2", "#efd8e2", "#dcdcf2", "#f1e6c4"];
 
-export function TechEssentials({ products }: { products: Product[] }) {
+export function PopularPicks({ products }: { products: Product[] }) {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [distance, setDistance] = useState(0);
@@ -43,15 +43,15 @@ export function TechEssentials({ products }: { products: Product[] }) {
       ref={sectionRef}
       className="relative mt-24 bg-sky"
       style={{ height: `calc(100vh + ${distance}px)` }}
-      aria-label="Tech essentials"
+      aria-label="Popular picks"
     >
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-            Power your life
+            Handpicked for you
           </p>
           <h2 className="mt-2 max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">
-            Your tech essentials, all in <span className="italic text-coral">one place</span>.
+            Popular picks, all in <span className="italic text-coral">one place</span>.
           </h2>
         </div>
 
