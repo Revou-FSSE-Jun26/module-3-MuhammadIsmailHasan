@@ -1,40 +1,49 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { Scene } from "@/components/illustrations/Scene";
 import { ProductImage } from "@/components/product/ProductImage";
 import { useCart } from "@/components/cart/CartProvider";
 import { Icon } from "@/components/ui/Icon";
 import { Reveal } from "@/components/ui/Reveal";
 import { cn, formatPrice } from "@/lib/format";
+import { siteConfig } from "@/lib/site";
 import type { Product } from "@/lib/types";
 
-// Hotspot positions in % of the image — adjust to match your own photo.
 const SPOTS = [
-  { left: 28, top: 58 },
-  { left: 76, top: 42 },
-  { left: 57, top: 82 },
+  { left: 19, top: 62 },
+  { left: 70, top: 45 },
+  { left: 50, top: 80 },
 ];
 
-/** "Shop the look" — pulsing hotspots that open a product popover. */
 export function Lookbook({ products }: { products: Product[] }) {
   const [active, setActive] = useState<number | null>(null);
   const { add } = useCart();
   const items = products.slice(0, SPOTS.length);
 
   return (
-    <section className="mt-24" aria-label="Shop the look">
-      <Reveal y={60} className="relative h-[520px] overflow-hidden sm:h-[640px] lg:h-[760px]">
-        <Scene variant="lake" palette="sunset" parallax />
-        <div className="absolute left-4 top-8 max-w-sm sm:left-10 sm:top-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-ink/70">
-            Shop the look
-          </p>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink sm:text-5xl">
-            Weekend escape
-          </h2>
+    <section className="mx-auto mt-24 max-w-6xl px-4 sm:px-6" aria-label="Shop the look">
+      <div className="max-w-xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+          {siteConfig.lookbook.eyebrow}
+        </p>
+        <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-5xl">
+          {siteConfig.lookbook.title}
+        </h2>
+        <p className="mt-3 text-muted">Tap a + to see the product and add it to your cart.</p>
+      </div>
+
+      <Reveal y={60} className="relative mt-8 aspect-[5/3] rounded-3xl">
+        <div className="absolute inset-0 overflow-hidden rounded-3xl">
+          <Image
+            src={siteConfig.lookbook.image}
+            alt=""
+            fill
+            sizes="(min-width: 1152px) 1152px, 100vw"
+            className="object-cover"
+          />
         </div>
 
         {items.map((p, i) => {
