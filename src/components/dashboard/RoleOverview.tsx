@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/Icon";
 import { DASHBOARD_NAV } from "@/lib/dashboard-nav";
 import type { Role } from "@/lib/types";
 import { PageHeader } from "./PageHeader";
+import { Stats } from "./Stats";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -20,6 +21,7 @@ export function RoleOverview({ role }: { role: Role }) {
         title={`Welcome back${user ? `, ${user.username}` : ""}`}
         description="Pick where you want to work."
       />
+      <Stats role={role} />
       <motion.ul
         initial="hidden"
         animate="show"
