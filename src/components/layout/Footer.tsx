@@ -6,27 +6,24 @@ import { BackToTop } from "./BackToTop";
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-line bg-[#fafafa]">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 lg:grid-cols-5">
+    <footer id="contact" className="mt-24 scroll-mt-32 border-t border-line bg-[#fafafa]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
         <Reveal className="lg:col-span-2">
           <Link href="/" className="text-2xl font-extrabold">
             {siteConfig.name}
           </Link>
-          <p className="mt-4 max-w-xs text-sm text-muted">
-            Everyday essentials, tech and style — picked with care and delivered to your door.
+          <p className="mt-4 max-w-sm text-sm text-muted">
+            An online shop built as a learning project. Products and data are for demonstration
+            only.
           </p>
           <ul className="mt-6 space-y-3 text-sm">
             <li className="flex items-center gap-3">
-              <Icon name="pin" size={17} />
-              {siteConfig.address}
-            </li>
-            <li className="flex items-center gap-3">
-              <Icon name="phone" size={17} />
-              {siteConfig.phone}
-            </li>
-            <li className="flex items-center gap-3">
               <Icon name="mail" size={17} />
               {siteConfig.email}
+            </li>
+            <li className="flex items-center gap-3">
+              <Icon name="pin" size={17} />
+              Ngawi, Jawa Timur
             </li>
           </ul>
         </Reveal>
@@ -36,18 +33,24 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-wider">{col.title}</h3>
             <ul className="mt-4 space-y-3 text-sm text-muted">
               {col.links.map((link) => (
-                <li key={link}>
-                  <Link
-                    href="#"
-                    className="group inline-flex items-center gap-1 transition-colors hover:text-ink"
-                  >
-                    <span className="w-0 overflow-hidden transition-all duration-300 group-hover:w-3">
-                      –
-                    </span>
-                    {link}
+                <li key={link.label}>
+                  <Link href={link.href} className="transition-colors hover:text-ink">
+                    {link.label}
                   </Link>
                 </li>
               ))}
+              {col.title === "About" && (
+                <li>
+                  <a
+                    href={siteConfig.github}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="transition-colors hover:text-ink"
+                  >
+                    Source code
+                  </a>
+                </li>
+              )}
             </ul>
           </Reveal>
         ))}
@@ -56,7 +59,8 @@ export function Footer() {
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-6 text-xs text-muted sm:flex-row sm:px-6">
           <p>
-            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+            © {new Date().getFullYear()} {siteConfig.name}. A learning project by Muhammad Ismail
+            Hasan.
           </p>
           <BackToTop />
         </div>

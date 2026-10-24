@@ -176,7 +176,7 @@ export function Header({ categories }: { categories: Category[] }) {
               const active =
                 item.href === "/"
                   ? pathname === "/"
-                  : item.href !== "/#newsletter" &&
+                  : item.href !== "/#contact" &&
                     (pathname === item.href.split("#")[0] ||
                       pathname.startsWith(`${item.href.split("#")[0]}/`));
               return (
