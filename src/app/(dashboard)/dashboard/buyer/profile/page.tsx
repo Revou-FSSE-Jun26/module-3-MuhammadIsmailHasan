@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/dashboard/ComingSoon";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { ProfileView } from "@/components/dashboard/ProfileView";
 
 export const metadata: Metadata = { title: "Profile" };
 
-export default function Page() {
-  return <ComingSoon title="Profile" step="Step 5" />;
+export default function BuyerProfilePage() {
+  return (
+    <>
+      <PageHeader title="Profile" description="Your details and shipping addresses." />
+      <ProfileView />
+    </>
+  );
 }
