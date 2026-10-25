@@ -45,6 +45,7 @@ async function verify(saved: Session): Promise<Session | null> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
+  const sessionRef = useRef<Session | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const saved = readSession();
       const next = saved ? await verify(saved) : null;
       if (cancelled) return;
+      sessionRef.current = next;
       writeSession(next);
       setSession(next);
       setStatus("ready");
@@ -63,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const persist = useCallback((next: Session | null) => {
+    sessionRef.current = next;
     writeSession(next);
     setSession(next);
   }, []);
@@ -91,11 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => persist(null), [persist]);
-
-  const sessionRef = useRef(session);
-  useEffect(() => {
-    sessionRef.current = session;
-  }, [session]);
 
   const updateUser = useCallback(
     (user: User) => {
