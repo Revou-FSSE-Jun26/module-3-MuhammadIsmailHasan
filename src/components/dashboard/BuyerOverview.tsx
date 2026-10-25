@@ -92,7 +92,7 @@ export function BuyerOverview() {
                     </Link>
                   </div>
                 ) : (
-                  <ul className="space-y-3">
+                  <ul className="grid gap-4 md:grid-cols-2">
                     {summary.recent.map((order) => (
                       <li key={order.id}>
                         <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />
