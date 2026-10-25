@@ -142,10 +142,10 @@ export const authApi = {
 const CATALOG_REVALIDATE = 60;
 
 export const productApi = {
-  list: (query: ProductQuery = {}) =>
+  list: (query: ProductQuery = {}, fresh = false) =>
     request<ApiEnvelope<ProductSummary[]>>("/products/", {
       query,
-      revalidate: CATALOG_REVALIDATE,
+      revalidate: fresh ? undefined : CATALOG_REVALIDATE,
     }).then(paged),
   get: (id: number, fresh = false) =>
     request<ApiEnvelope<ProductDetail>>(`/products/${id}`, {
@@ -349,6 +349,7 @@ function toCartProduct(p: ApiCartItem["product"]): Product {
     subCategory: "",
     subCategoryId: null,
     seller: null,
+    soldCount: 0,
   };
 }
 
@@ -385,6 +386,7 @@ export function toProduct(p: ProductSummary | ProductDetail): Product {
     subCategory: p.sub_category?.name ?? "",
     subCategoryId: p.sub_category?.id ?? null,
     seller: p.seller ?? null,
+    soldCount: p.sold_count ?? 0,
   };
 }
 

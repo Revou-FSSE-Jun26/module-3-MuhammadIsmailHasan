@@ -76,6 +76,7 @@ export type ProductSummary = {
   price: number;
   stock: number;
   image: string | null;
+  sold_count?: number;
   sub_category?: { id: number; name: string; category_id: number | null } | null;
   seller?: Seller | null;
 };
@@ -96,7 +97,7 @@ export type ProductQuery = {
   seller_id?: number;
   min_price?: number;
   max_price?: number;
-  sort_by?: "id" | "name" | "price" | "created_at";
+  sort_by?: "id" | "name" | "price" | "created_at" | "best_selling";
   order?: "asc" | "desc";
   page?: number;
   limit?: number;
@@ -130,6 +131,15 @@ export type OrderItem = {
   } | null;
 };
 
+export type StatusHistoryEntry = {
+  id: number;
+  from_status: OrderStatus | null;
+  to_status: OrderStatus;
+  tracking_id: string | null;
+  created_at: string | null;
+  changed_by: { id: number; name: string; role: Role } | null;
+};
+
 export type Order = {
   id: number;
   user_id: number;
@@ -147,6 +157,7 @@ export type Order = {
   refund_note?: string | null;
   seller?: Seller | null;
   items?: OrderItem[];
+  status_history?: StatusHistoryEntry[];
 };
 
 export type Address = {
@@ -215,6 +226,7 @@ export type Product = {
   subCategory: string;
   subCategoryId: number | null;
   seller: Seller | null;
+  soldCount: number;
 };
 
 export type CartItem = {
