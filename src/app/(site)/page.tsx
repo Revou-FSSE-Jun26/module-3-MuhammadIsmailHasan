@@ -11,11 +11,12 @@ import { getCategories, getProducts } from "@/lib/api";
 
 export default async function HomePage() {
   const [featured, latest, categories] = await Promise.all([
-    getProducts({ limit: 10 }),
+    getProducts({ limit: 11, sort_by: "best_selling", order: "desc" }),
     getProducts({ limit: 10, sort_by: "created_at", order: "desc" }),
     getCategories(),
   ]);
-  const products = featured.items;
+  const topSellers = featured.items.slice(0, 5);
+  const popular = featured.items.slice(5, 11);
   const newest = latest.items.slice(0, 5);
 
   return (
@@ -26,10 +27,10 @@ export default async function HomePage() {
         title="Top sellers"
         eyebrow="Featured products"
         ghost="Best Sellers"
-        products={products.slice(0, 5)}
+        products={topSellers}
         link={{ href: "/collections/all", label: "Shop all" }}
       />
-      <PopularPicks products={products.slice(0, 6)} />
+      <PopularPicks products={popular} />
       <ProductGrid
         title="New arrivals"
         eyebrow="Just landed"

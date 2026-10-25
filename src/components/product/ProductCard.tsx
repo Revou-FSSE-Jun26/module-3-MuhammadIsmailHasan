@@ -120,6 +120,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
         </Link>
         <p className="truncate text-xs text-muted">
           by <span className="font-medium text-ink">{product.seller?.name ?? siteConfig.name}</span>
+          {product.soldCount > 0 && <> · {product.soldCount} sold</>}
         </p>
         <div className="mt-auto flex flex-col gap-0.5 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-bold">{formatPrice(product.price)}</span>
