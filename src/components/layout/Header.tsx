@@ -13,7 +13,7 @@ import type { Category } from "@/lib/types";
 import { siteConfig } from "@/lib/site";
 
 export function Header({ categories }: { categories: Category[] }) {
-  const { count, subtotal, open, wishlist } = useCart();
+  const { count, subtotal, open, wishlist, canShop } = useCart();
   const { user, status, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -140,30 +140,34 @@ export function Header({ categories }: { categories: Category[] }) {
                 Logout
               </button>
             )}
-            <Link
-              href="/wishlist"
-              className="relative hidden size-11 place-items-center rounded-full hover:bg-[#f3f3f3] sm:grid"
-              aria-label={`Wishlist, ${wishlist.length} items`}
-            >
-              <Icon name="heart" size={21} />
-              <CountBadge value={wishlist.length} />
-            </Link>
-            <button
-              type="button"
-              onClick={open}
-              className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 hover:bg-[#f3f3f3] sm:pr-3"
-              aria-label={`Open cart, ${count} items`}
-            >
-              <span className="relative grid size-10 place-items-center">
-                <Icon name="bag" size={21} />
-                <CountBadge value={count} />
-              </span>
-              <span className="hidden text-left text-xs leading-tight text-muted sm:block">
-                Cart
-                <br />
-                <b className="text-sm text-ink">{formatPrice(subtotal)}</b>
-              </span>
-            </button>
+            {canShop && (
+              <Link
+                href="/wishlist"
+                className="relative hidden size-11 place-items-center rounded-full hover:bg-[#f3f3f3] sm:grid"
+                aria-label={`Wishlist, ${wishlist.length} items`}
+              >
+                <Icon name="heart" size={21} />
+                <CountBadge value={wishlist.length} />
+              </Link>
+            )}
+            {canShop && (
+              <button
+                type="button"
+                onClick={open}
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 hover:bg-[#f3f3f3] sm:pr-3"
+                aria-label={`Open cart, ${count} items`}
+              >
+                <span className="relative grid size-10 place-items-center">
+                  <Icon name="bag" size={21} />
+                  <CountBadge value={count} />
+                </span>
+                <span className="hidden text-left text-xs leading-tight text-muted sm:block">
+                  Cart
+                  <br />
+                  <b className="text-sm text-ink">{formatPrice(subtotal)}</b>
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -258,7 +262,7 @@ export function Header({ categories }: { categories: Category[] }) {
               >
                 {[
                   ...mainNav,
-                  { label: "Wishlist", href: "/wishlist" },
+                  ...(canShop ? [{ label: "Wishlist", href: "/wishlist" }] : []),
                   ...accountNav,
                   ...siteConfig.secondaryNav,
                 ].map((item) => (

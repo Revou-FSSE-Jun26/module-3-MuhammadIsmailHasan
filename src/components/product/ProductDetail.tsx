@@ -13,7 +13,7 @@ import { ProductImage } from "./ProductImage";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function ProductDetail({ product }: { product: Product }) {
-  const { add, wishlist, toggleWish } = useCart();
+  const { add, wishlist, toggleWish, canShop } = useCart();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 });
@@ -169,8 +169,9 @@ export function ProductDetail({ product }: { product: Product }) {
             <motion.button
               type="button"
               onClick={onAdd}
-              disabled={soldOut}
-              whileTap={{ scale: 0.97 }}
+              disabled={soldOut || !canShop}
+              title={canShop ? undefined : "Only buyer accounts can add to cart"}
+              whileTap={canShop ? { scale: 0.97 } : undefined}
               className="relative h-12 flex-1 overflow-hidden rounded-full bg-ink px-8 text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -182,18 +183,21 @@ export function ProductDetail({ product }: { product: Product }) {
                   exit={{ y: -24, opacity: 0 }}
                 >
                   <Icon name={added ? "check" : "bag"} size={17} />
-                  {added ? "Added to cart" : "Add to cart"}
+                  {!canShop ? "Buyer accounts only" : added ? "Added to cart" : "Add to cart"}
                 </motion.span>
               </AnimatePresence>
             </motion.button>
             <motion.button
               type="button"
               onClick={() => toggleWish(product.id)}
-              whileTap={{ scale: 0.85 }}
+              disabled={!canShop}
+              title={canShop ? undefined : "Wishlist is for buyer accounts only"}
+              whileTap={canShop ? { scale: 0.85 } : undefined}
               aria-pressed={wished}
               aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
               className={cn(
                 "grid size-12 place-items-center rounded-full border border-line",
+                !canShop && "cursor-not-allowed text-muted opacity-50",
                 wished && "text-coral",
               )}
             >

@@ -11,7 +11,7 @@ import { ProductCard } from "./ProductCard";
 const noopSubscribe = () => () => {};
 
 export function WishlistView() {
-  const { wishlist } = useCart();
+  const { wishlist, canShop } = useCart();
   const requested = useRef(new Set<number>());
   const ready = useSyncExternalStore(
     noopSubscribe,
@@ -37,6 +37,23 @@ export function WishlistView() {
       setSettled((prev) => [...prev, ...missing]);
     });
   }, [wishlist]);
+
+  if (!canShop) {
+    return (
+      <div className="mt-12 rounded-3xl border border-dashed border-line px-6 py-20 text-center">
+        <p className="text-lg font-bold">Wishlist is for buyer accounts</p>
+        <p className="mt-2 text-sm text-muted">
+          You are signed in with a seller or admin account, which has no cart or wishlist.
+        </p>
+        <Link
+          href="/collections/all"
+          className="mt-6 inline-block rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white hover:bg-black"
+        >
+          Browse products
+        </Link>
+      </div>
+    );
+  }
 
   const products = wishlist.map((id) => byId[id]).filter((p): p is Product => p !== undefined);
   const pending = !ready || wishlist.some((id) => !settled.includes(id));

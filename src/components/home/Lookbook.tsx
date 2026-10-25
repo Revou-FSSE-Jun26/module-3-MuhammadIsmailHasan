@@ -20,7 +20,7 @@ const SPOTS = [
 
 export function Lookbook({ products }: { products: Product[] }) {
   const [active, setActive] = useState<number | null>(null);
-  const { add } = useCart();
+  const { add, canShop } = useCart();
   const items = products.slice(0, SPOTS.length);
 
   return (
@@ -108,9 +108,11 @@ export function Lookbook({ products }: { products: Product[] }) {
                       <button
                         type="button"
                         onClick={() => add(p)}
-                        className="mt-3 h-10 w-full rounded-full bg-ink text-xs font-semibold text-white hover:bg-black"
+                        disabled={!canShop}
+                        title={canShop ? undefined : "Only buyer accounts can add to cart"}
+                        className="mt-3 h-10 w-full rounded-full bg-ink text-xs font-semibold text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        Add to cart
+                        {canShop ? "Add to cart" : "Buyers only"}
                       </button>
                     </motion.div>
                   )}

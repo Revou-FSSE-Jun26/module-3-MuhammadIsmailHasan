@@ -23,7 +23,7 @@ export function Stars({ rate, size = 12 }: { rate: number; size?: number }) {
 }
 
 export function ProductCard({ product, priority }: { product: Product; priority?: boolean }) {
-  const { add, wishlist, toggleWish } = useCart();
+  const { add, wishlist, toggleWish, canShop } = useCart();
   const [added, setAdded] = useState(false);
   const wished = wishlist.includes(product.id);
   const href = `/products/${product.slug}`;
@@ -56,11 +56,14 @@ export function ProductCard({ product, priority }: { product: Product; priority?
         <motion.button
           type="button"
           onClick={() => toggleWish(product.id)}
-          whileTap={{ scale: 0.8 }}
+          disabled={!canShop}
+          title={canShop ? undefined : "Wishlist is for buyer accounts only"}
+          whileTap={canShop ? { scale: 0.8 } : undefined}
           aria-pressed={wished}
           aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
           className={cn(
             "absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-white shadow-sm transition-all duration-300",
+            !canShop && "cursor-not-allowed text-muted",
             wished
               ? "text-coral opacity-100"
               : "text-ink lg:translate-x-3 lg:opacity-0 lg:group-hover:translate-x-0 lg:group-hover:opacity-100",
@@ -73,7 +76,8 @@ export function ProductCard({ product, priority }: { product: Product; priority?
           <button
             type="button"
             onClick={quickAdd}
-            disabled={soldOut}
+            disabled={soldOut || !canShop}
+            title={canShop ? undefined : "Only buyer accounts can add to cart"}
             className="relative flex h-11 w-full items-center justify-center overflow-hidden rounded-full bg-ink text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -95,7 +99,7 @@ export function ProductCard({ product, priority }: { product: Product; priority?
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -20, opacity: 0 }}
                 >
-                  <Icon name="bag" size={16} /> Quick add
+                  <Icon name="bag" size={16} /> {canShop ? "Quick add" : "Buyers only"}
                 </motion.span>
               )}
             </AnimatePresence>
