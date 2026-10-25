@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
 import { useCart } from "./CartProvider";
 import { Icon } from "@/components/ui/Icon";
 import { Spinner } from "@/components/ui/Spinner";
 import { ProductImage } from "@/components/product/ProductImage";
+import { loginUrl } from "@/lib/auth";
 import { cn, formatPrice } from "@/lib/format";
 import { siteConfig } from "@/lib/site";
 
@@ -25,7 +26,7 @@ export function CartDrawer() {
     isGuest,
     busy,
   } = useCart();
-  const pathname = usePathname();
+  const router = useRouter();
   const threshold = siteConfig.freeShippingThreshold;
   const remaining = Math.max(0, threshold - subtotal);
   const progress = Math.min(1, subtotal / threshold);
@@ -121,13 +122,16 @@ export function CartDrawer() {
                   <p className="max-w-xs text-sm text-muted">
                     Your cart is saved to your account, so it follows you on any device.
                   </p>
-                  <Link
-                    href={`/login?next=${encodeURIComponent(pathname)}`}
-                    onClick={close}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      router.push(loginUrl());
+                    }}
                     className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white"
                   >
                     Sign in
-                  </Link>
+                  </button>
                 </div>
               ) : loading ? (
                 <div className="flex h-full flex-col items-center justify-center gap-3 text-sm text-muted">

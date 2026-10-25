@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError, cartApi, productApi, toCartItems, toProduct } from "@/lib/api";
+import { loginUrl } from "@/lib/auth";
 import { clampQuantity } from "@/lib/cart";
 import type { ApiCart, CartItem, CheckoutPayload, Order, Product } from "@/lib/types";
 
@@ -94,7 +95,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { user, status, authed } = useAuth();
   const toast = useToast();
   const router = useRouter();
-  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [server, setServer] = useState<ServerCart | null>(null);
   const [busy, setBusy] = useState(false);
@@ -216,7 +216,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (product: Product, quantity = 1) => {
       if (!canShop || status !== "ready") return;
       if (buyerId === null) {
-        router.push(`/login?next=${encodeURIComponent(pathname)}`);
+        router.push(loginUrl());
         return;
       }
       if (product.image) setImageFix((prev) => ({ ...prev, [product.id]: product.image }));
@@ -242,7 +242,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         },
       });
     },
-    [canShop, status, buyerId, router, pathname, enqueue],
+    [canShop, status, buyerId, router, enqueue],
   );
 
   const setQuantity = useCallback(

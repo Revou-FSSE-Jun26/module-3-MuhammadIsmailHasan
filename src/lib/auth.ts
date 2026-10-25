@@ -30,6 +30,11 @@ export function writeSession(session: Session | null) {
   }
 }
 
+export function loginUrl(): string {
+  const here = `${window.location.pathname}${window.location.search}`;
+  return `/login?next=${encodeURIComponent(here)}`;
+}
+
 export function safeNext(next: string | null): string | null {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
 }
