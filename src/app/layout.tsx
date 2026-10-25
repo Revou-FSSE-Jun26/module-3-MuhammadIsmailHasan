@@ -22,9 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={jakarta.variable}>
       <body className="overflow-x-clip font-sans">
         <AuthProvider>
-          <CartProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </CartProvider>
+          <ToastProvider>
+            <CartProvider>{children}</CartProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
