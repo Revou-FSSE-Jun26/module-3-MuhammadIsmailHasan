@@ -8,11 +8,12 @@ import { PromoMarquee } from "@/components/home/PromoMarquee";
 import { PopularPicks } from "@/components/home/PopularPicks";
 import { ProjectRoles } from "@/components/home/ProjectRoles";
 import { getCategories, getProducts } from "@/lib/api";
+import { pickCollections, pickDiverse } from "@/lib/catalog";
 
 export default async function HomePage() {
   const [featured, latest, categories] = await Promise.all([
     getProducts({ limit: 11, sort_by: "best_selling", order: "desc" }),
-    getProducts({ limit: 10, sort_by: "created_at", order: "desc" }),
+    getProducts({ limit: 30, sort_by: "created_at", order: "desc" }),
     getCategories(),
   ]);
   const topSellers = featured.items.slice(0, 5);
@@ -22,7 +23,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroSlider />
-      <Collections subCategories={categories.flatMap((c) => c.sub_categories ?? [])} />
+      <Collections subCategories={pickCollections(categories, 4)} />
       <ProductGrid
         title="Top sellers"
         eyebrow="Featured products"
@@ -38,7 +39,7 @@ export default async function HomePage() {
         products={newest}
         link={{ href: "/collections/all", label: "Shop all" }}
       />
-      <Lookbook products={latest.items} />
+      <Lookbook products={pickDiverse(latest.items, 3)} />
       <PromoMarquee />
       <Features />
       <ProjectRoles />
