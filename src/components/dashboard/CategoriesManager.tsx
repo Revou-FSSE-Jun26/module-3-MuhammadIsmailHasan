@@ -1,13 +1,66 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { ProductImage } from "@/components/product/ProductImage";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { useToast } from "@/components/ui/ToastProvider";
-import { ApiError, categoryApi, getCategories, subCategoryApi } from "@/lib/api";
+import { ApiError, categoryApi, getCategories, imageUrl, subCategoryApi } from "@/lib/api";
 import { PageHeader } from "./PageHeader";
 import { QueryView } from "./QueryView";
+
+function ImageUpload({
+  src,
+  name,
+  id,
+  size,
+  onUpload,
+}: {
+  src: string | null;
+  name: string;
+  id: number;
+  size: "lg" | "sm";
+  onUpload: (file: File) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const url = imageUrl(src);
+
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    await onUpload(file);
+    setBusy(false);
+  }
+
+  return (
+    <label
+      title={url ? "Change image" : "Upload image"}
+      className={`group relative mr-3 grid shrink-0 cursor-pointer place-items-center overflow-hidden rounded-xl bg-[#f2f2f2] ${
+        size === "lg" ? "size-14" : "size-10"
+      } ${busy ? "opacity-60" : ""}`}
+    >
+      {url ? (
+        <ProductImage src={url} alt={name} id={id} sizes="56px" className="p-0" />
+      ) : (
+        <span className="text-xl font-light text-muted">+</span>
+      )}
+      <span className="absolute inset-0 grid place-items-center bg-black/55 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+        {busy ? "…" : url ? "Change" : "Upload"}
+      </span>
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={onFile}
+        disabled={busy}
+        className="sr-only"
+        aria-label={`Upload image for ${name}`}
+      />
+    </label>
+  );
+}
 
 function InlineName({
   value,
@@ -131,7 +184,7 @@ function AddRow({
 export function CategoriesManager() {
   const { authed } = useAuth();
   const toast = useToast();
-  const { state, reload } = useAuthedQuery("category-manager", () => getCategories());
+  const { state, reload } = useAuthedQuery("category-manager", () => getCategories(true));
 
   async function run(action: (token: string) => Promise<unknown>, done: string) {
     try {
@@ -171,7 +224,16 @@ export function CategoriesManager() {
                     exit={{ opacity: 0 }}
                     className="rounded-2xl border border-line bg-white p-5"
                   >
-                    <div className="flex">
+                    <div className="flex items-center">
+                      <ImageUpload
+                        src={category.image}
+                        name={category.name}
+                        id={category.id}
+                        size="lg"
+                        onUpload={(file) =>
+                          run((t) => categoryApi.uploadImage(t, category.id, file), "Image updated")
+                        }
+                      />
                       <InlineName
                         strong
                         value={category.name}
@@ -188,7 +250,19 @@ export function CategoriesManager() {
                     </div>
                     <ul className="mt-4 space-y-2 border-l-2 border-line pl-4">
                       {(category.sub_categories ?? []).map((sub) => (
-                        <li key={sub.id} className="flex">
+                        <li key={sub.id} className="flex items-center">
+                          <ImageUpload
+                            src={sub.image}
+                            name={sub.name}
+                            id={sub.id}
+                            size="sm"
+                            onUpload={(file) =>
+                              run(
+                                (t) => subCategoryApi.uploadImage(t, sub.id, file),
+                                "Image updated",
+                              )
+                            }
+                          />
                           <InlineName
                             value={sub.name}
                             onSave={(name) =>

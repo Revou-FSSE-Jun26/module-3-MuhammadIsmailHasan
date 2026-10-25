@@ -205,10 +205,10 @@ export const productImageApi = {
 };
 
 export const categoryApi = {
-  list: () =>
+  list: (fresh = false) =>
     request<ApiEnvelope<Category[]>>("/categories/", {
       query: { limit: 100 },
-      revalidate: CATALOG_REVALIDATE,
+      revalidate: fresh ? undefined : CATALOG_REVALIDATE,
     }).then(unwrap),
   get: (id: number) =>
     request<ApiEnvelope<Category>>(`/categories/${id}`, { revalidate: CATALOG_REVALIDATE }).then(
@@ -226,6 +226,15 @@ export const categoryApi = {
     }).then(unwrap),
   remove: (token: string, id: number) =>
     request<ApiEnvelope<never>>(`/categories/${id}`, { method: "DELETE", token }),
+  uploadImage: (token: string, id: number, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request<ApiEnvelope<Category>>(`/categories/${id}/image`, {
+      method: "POST",
+      token,
+      body: form,
+    }).then(unwrap);
+  },
 };
 
 export const subCategoryApi = {
@@ -243,10 +252,19 @@ export const subCategoryApi = {
     }).then(unwrap),
   remove: (token: string, id: number) =>
     request<ApiEnvelope<never>>(`/sub-categories/${id}`, { method: "DELETE", token }),
-  list: () =>
+  uploadImage: (token: string, id: number, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request<ApiEnvelope<SubCategory>>(`/sub-categories/${id}/image`, {
+      method: "POST",
+      token,
+      body: form,
+    }).then(unwrap);
+  },
+  list: (fresh = false) =>
     request<ApiEnvelope<SubCategory[]>>("/sub-categories/", {
       query: { limit: 100 },
-      revalidate: CATALOG_REVALIDATE,
+      revalidate: fresh ? undefined : CATALOG_REVALIDATE,
     }).then(unwrap),
 };
 
@@ -404,8 +422,11 @@ export async function getProduct(slug: string): Promise<Product | null> {
   }
 }
 
-export async function getCategories(): Promise<Category[]> {
-  const [categories, subs] = await Promise.all([categoryApi.list(), subCategoryApi.list()]);
+export async function getCategories(fresh = false): Promise<Category[]> {
+  const [categories, subs] = await Promise.all([
+    categoryApi.list(fresh),
+    subCategoryApi.list(fresh),
+  ]);
   return categories
     .filter((c) => c.is_active)
     .map((c) => ({

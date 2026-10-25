@@ -146,6 +146,11 @@ export function ProductsManager({ role }: { role: Extract<Role, "seller" | "admi
                       </div>
                       <div className="flex flex-1 flex-col p-3 sm:p-4">
                         <p className="line-clamp-2 min-h-10 text-sm font-semibold">{p.title}</p>
+                        {role === "admin" && (
+                          <p className="mt-0.5 truncate text-xs text-muted">
+                            by {p.seller?.name ?? "Unknown seller"}
+                          </p>
+                        )}
                         <p className="mt-1 text-base font-bold">{formatPrice(p.price)}</p>
                         <p className="mt-1 text-xs text-muted">
                           {level === "ok" ? `${p.stock} in stock` : `Stock ${p.stock}`} ·{" "}

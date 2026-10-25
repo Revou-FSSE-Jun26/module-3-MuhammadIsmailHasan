@@ -1,5 +1,5 @@
-import { RoleOverview } from "@/components/dashboard/RoleOverview";
+import { AdminOverview } from "@/components/dashboard/AdminOverview";
 
 export default function AdminOverviewPage() {
-  return <RoleOverview role="admin" />;
+  return <AdminOverview />;
 }

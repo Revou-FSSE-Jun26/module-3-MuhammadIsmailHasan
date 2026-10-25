@@ -14,12 +14,12 @@ import { OrderSummaryCard } from "./OrderSummaryCard";
 
 const PAGE_SIZE = 12;
 
-export function SellerOrders({ openId }: { openId: number | null }) {
+export function StaffOrders({ role, openId }: { role: "seller" | "admin"; openId: number | null }) {
   const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [selected, setSelected] = useState<number | null>(openId);
-  const { state, reload } = useAuthedQuery(`orders-seller-${page}-${status}`, (token) =>
+  const { state, reload } = useAuthedQuery(`orders-${role}-${page}-${status}`, (token) =>
     orderApi.list(token, page, status, PAGE_SIZE),
   );
 
@@ -27,7 +27,11 @@ export function SellerOrders({ openId }: { openId: number | null }) {
     <>
       <PageHeader
         title="Orders"
-        description="Each card shows only your products. Open one to ship it and see its history."
+        description={
+          role === "seller"
+            ? "Each card shows only your products. Open one to ship it and see its history."
+            : "Every order in the store. Open one to update its status and see its history."
+        }
         action={
           <Select
             value={status}
@@ -54,7 +58,7 @@ export function SellerOrders({ openId }: { openId: number | null }) {
                   <li key={order.id}>
                     <OrderSummaryCard
                       order={order}
-                      viewerSellerId={user?.id}
+                      viewerSellerId={role === "seller" ? user?.id : undefined}
                       onOpen={() => setSelected(order.id)}
                     />
                   </li>
@@ -66,12 +70,7 @@ export function SellerOrders({ openId }: { openId: number | null }) {
         }
       </QueryView>
 
-      <OrderModal
-        id={selected}
-        role="seller"
-        onClose={() => setSelected(null)}
-        onChanged={reload}
-      />
+      <OrderModal id={selected} role={role} onClose={() => setSelected(null)} onChanged={reload} />
     </>
   );
 }
