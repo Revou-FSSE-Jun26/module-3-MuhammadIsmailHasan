@@ -37,4 +37,27 @@ test.describe("seller", () => {
     await page.goto("/dashboard/admin");
     await expect(page.getByText("You don't have access")).toBeVisible();
   });
+
+  test("overview, products and orders pages render", async ({ page }) => {
+    await login(page, accounts.seller.email!, accounts.seller.password!);
+
+    await expect(page.getByText("Total sales")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ship these soon" })).toBeVisible();
+
+    await page.goto("/dashboard/seller/products");
+    await page.getByRole("combobox", { name: "Sort products" }).click();
+    await page.getByRole("option", { name: "Best selling" }).click();
+    await expect(page.getByRole("combobox", { name: "Sort products" })).toContainText(
+      "Best selling",
+    );
+
+    await page.goto("/dashboard/seller/orders");
+    await expect(page.getByRole("heading", { name: "Orders" })).toBeVisible();
+    const first = page.getByRole("button", { name: /^Order #/ }).first();
+    if (await first.count()) {
+      await first.click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.getByText("Status history")).toBeVisible();
+    }
+  });
 });

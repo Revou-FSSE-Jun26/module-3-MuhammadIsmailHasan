@@ -27,7 +27,7 @@ Module 2 (`https://revoshop-apis.onrender.com/api/v1`).
 | Role | Can do |
 |---|---|
 | Buyer | Browse, keep a cart, check out per seller, track and cancel own orders (order details open in a modal) |
-| Seller | Create, edit and delete own products, manage images, update order status |
+| Seller | Create, edit and delete own products (stock warnings, best-seller sort), manage images, ship orders from a card grid with a detail modal and status history |
 | Admin | Everything a seller can, plus categories, sub-categories and all orders |
 
 **Routes**
@@ -98,10 +98,10 @@ Set `E2E_BASE_URL` to run against a deployed site instead of the dev server.
 │   │   ├── auth/              login, register, role guards, AuthProvider
 │   │   ├── cart/              CartProvider (API-backed, optimistic) and drawer
 │   │   ├── checkout/          checkout view and address form
-│   │   ├── dashboard/         shell, buyer overview, managers, shared query views
+│   │   ├── dashboard/         shell, buyer and seller overviews, managers, shared query views
 │   │   ├── home/              hero, collections, lookbook, FAQ and other sections
 │   │   ├── layout/            header, footer, announcement bar
-│   │   ├── orders/            order cards, order modal, status actions
+│   │   ├── orders/            order cards, order modal, status timeline, status actions
 │   │   ├── product/           product card, detail, wishlist, sort
 │   │   └── ui/                icons, select, spinner, toasts, reveal animations
 │   ├── hooks/                 useAuthedQuery
