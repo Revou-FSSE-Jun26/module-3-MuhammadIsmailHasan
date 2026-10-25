@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Select } from "@/components/ui/Select";
 import { SORT_OPTIONS } from "@/lib/catalog";
 
 export function SortSelect({ value }: { value: string }) {
@@ -16,19 +17,14 @@ export function SortSelect({ value }: { value: string }) {
   }
 
   return (
-    <label className="flex items-center gap-2 text-sm">
+    <div className="flex items-center gap-2 text-sm">
       <span className="text-muted">Sort by</span>
-      <select
+      <Select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 rounded-full border border-line bg-white px-4 font-medium outline-none focus:border-ink"
-      >
-        {SORT_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        onChange={onChange}
+        options={SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+        label="Sort by"
+      />
+    </div>
   );
 }

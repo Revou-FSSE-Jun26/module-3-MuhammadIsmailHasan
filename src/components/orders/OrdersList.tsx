@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Pager, QueryView } from "@/components/dashboard/QueryView";
+import { Select } from "@/components/ui/Select";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { orderApi } from "@/lib/api";
 import { formatDate, formatPrice } from "@/lib/format";
-import { STATUS_META } from "@/lib/orders";
+import { STATUS_FILTER_OPTIONS } from "@/lib/orders";
 import type { OrderStatus, Role } from "@/lib/types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -30,22 +31,15 @@ export function OrdersList({ role }: { role: Role }) {
         title={COPY[role].title}
         description={COPY[role].text}
         action={
-          <select
+          <Select
             value={status}
-            onChange={(e) => {
+            onChange={(next) => {
               setPage(1);
-              setStatus(e.target.value as OrderStatus | "");
+              setStatus(next);
             }}
-            aria-label="Filter by status"
-            className="h-10 rounded-full border border-line bg-white px-4 text-sm font-medium outline-none focus:border-ink"
-          >
-            <option value="">All statuses</option>
-            {(Object.keys(STATUS_META) as OrderStatus[]).map((s) => (
-              <option key={s} value={s}>
-                {STATUS_META[s].label}
-              </option>
-            ))}
-          </select>
+            options={STATUS_FILTER_OPTIONS}
+            label="Filter by status"
+          />
         }
       />
 
@@ -81,7 +75,7 @@ export function OrdersList({ role }: { role: Role }) {
                   </li>
                 ))}
               </ul>
-              <Pager page={page} totalPages={pagination?.total_pages ?? 1} onChange={setPage} />
+              <Pager pagination={pagination} onChange={setPage} />
             </>
           )
         }

@@ -140,7 +140,7 @@ export function ProductsManager({ role }: { role: Extract<Role, "seller" | "admi
                   );
                 })}
               </ul>
-              <Pager page={page} totalPages={pagination?.total_pages ?? 1} onChange={setPage} />
+              <Pager pagination={pagination} onChange={setPage} />
             </>
           )
         }

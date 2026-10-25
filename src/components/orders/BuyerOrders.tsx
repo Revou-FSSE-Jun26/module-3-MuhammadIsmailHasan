@@ -4,19 +4,22 @@ import Link from "next/link";
 import { useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Pager, QueryView } from "@/components/dashboard/QueryView";
+import { Select } from "@/components/ui/Select";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { orderApi } from "@/lib/api";
-import { STATUS_META } from "@/lib/orders";
+import { STATUS_FILTER_OPTIONS } from "@/lib/orders";
 import type { OrderStatus } from "@/lib/types";
 import { OrderModal } from "./OrderModal";
 import { OrderSummaryCard } from "./OrderSummaryCard";
+
+const PAGE_SIZE = 12;
 
 export function BuyerOrders({ placed, openId }: { placed: number; openId: number | null }) {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [selected, setSelected] = useState<number | null>(openId);
   const { state, reload } = useAuthedQuery(`orders-buyer-${page}-${status}`, (token) =>
-    orderApi.list(token, page, status),
+    orderApi.list(token, page, status, PAGE_SIZE),
   );
 
   return (
@@ -31,22 +34,15 @@ export function BuyerOrders({ placed, openId }: { placed: number; openId: number
         title="My orders"
         description="Every seller ships and updates its own order."
         action={
-          <select
+          <Select
             value={status}
-            onChange={(e) => {
+            onChange={(next) => {
               setPage(1);
-              setStatus(e.target.value as OrderStatus | "");
+              setStatus(next);
             }}
-            aria-label="Filter by status"
-            className="h-10 rounded-full border border-line bg-white px-4 text-sm font-medium outline-none focus:border-ink"
-          >
-            <option value="">All statuses</option>
-            {(Object.keys(STATUS_META) as OrderStatus[]).map((s) => (
-              <option key={s} value={s}>
-                {STATUS_META[s].label}
-              </option>
-            ))}
-          </select>
+            options={STATUS_FILTER_OPTIONS}
+            label="Filter by status"
+          />
         }
       />
 
@@ -61,14 +57,14 @@ export function BuyerOrders({ placed, openId }: { placed: number; openId: number
             </div>
           ) : (
             <>
-              <ul className="space-y-3">
+              <ul className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
                 {items.map((order) => (
                   <li key={order.id}>
                     <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />
                   </li>
                 ))}
               </ul>
-              <Pager page={page} totalPages={pagination?.total_pages ?? 1} onChange={setPage} />
+              <Pager pagination={pagination} onChange={setPage} />
             </>
           )
         }

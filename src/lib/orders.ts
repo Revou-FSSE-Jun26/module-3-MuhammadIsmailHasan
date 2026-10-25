@@ -57,3 +57,11 @@ export function sellerLabel(order: Order): string {
   if (sellers.length === 1) return sellers[0].name;
   return `${sellers.length} sellers`;
 }
+
+export const STATUS_FILTER_OPTIONS: { value: OrderStatus | ""; label: string }[] = [
+  { value: "", label: "All statuses" },
+  ...(Object.keys(STATUS_META) as OrderStatus[]).map((s) => ({
+    value: s,
+    label: STATUS_META[s].label,
+  })),
+];
