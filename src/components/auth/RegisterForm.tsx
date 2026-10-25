@@ -54,8 +54,6 @@ export function RegisterForm() {
         eyebrow: "Join RevoShop",
         title: "Shop smarter. Sell with ease.",
         points: ["Free to join", "Buyer and seller tools", "Orders and stock in one dashboard"],
-        scene: "lake",
-        palette: "sunset",
       }}
     >
       <form onSubmit={onSubmit} className="space-y-5" noValidate>

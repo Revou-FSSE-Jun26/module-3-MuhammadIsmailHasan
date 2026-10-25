@@ -1,6 +1,3 @@
-export type ScenePalette = "peach" | "sunset" | "mint" | "dusk";
-export type SceneVariant = "hills" | "lake" | "dunes";
-
 export const siteConfig = {
   name: "RevoShop",
   locale: "id-ID",

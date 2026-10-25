@@ -3,61 +3,58 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
-import { Scene } from "@/components/illustrations/Scene";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/format";
-import { siteConfig, type ScenePalette, type SceneVariant } from "@/lib/site";
+import { siteConfig } from "@/lib/site";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 type Aside = {
   eyebrow: string;
   title: string;
-  points: string[];
-  scene: SceneVariant;
-  palette: ScenePalette;
+  points?: string[];
 };
 
 export function AuthShell({
   title,
   subtitle,
   aside,
+  asideExtra,
   children,
 }: {
   title: string;
   subtitle: string;
   aside: Aside;
+  asideExtra?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <div className="bg-cream px-4 py-10 sm:py-16">
+    <div className="bg-white px-4 py-8 sm:py-10">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: EASE }}
         className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5 lg:grid-cols-2"
       >
-        <div className="p-6 sm:p-10 lg:p-12">
+        <div className="p-6 sm:p-8 lg:p-10">
           <Link href="/" className="text-lg font-extrabold tracking-tight">
             {siteConfig.name}
           </Link>
-          <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h1>
+          <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h1>
           <p className="mt-2 text-sm text-muted">{subtitle}</p>
-          <div className="mt-8">{children}</div>
+          <div className="mt-6">{children}</div>
         </div>
 
-        <aside className="relative hidden min-h-[520px] lg:block">
-          <Scene variant={aside.scene} palette={aside.palette} />
-          <div className="absolute inset-0 bg-linear-to-t from-black/45 via-black/5 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-10 text-white">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] opacity-80">
+        <aside className="hidden flex-col justify-center gap-8 border-l border-line bg-[#fafafa] p-10 lg:flex lg:p-10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
               {aside.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-extrabold leading-tight">{aside.title}</h2>
             <ul className="mt-6 space-y-3 text-sm">
-              {aside.points.map((point) => (
+              {aside.points?.map((point) => (
                 <li key={point} className="flex items-center gap-3">
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-white/25 backdrop-blur">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink text-white">
                     <Icon name="check" size={14} />
                   </span>
                   {point}
@@ -65,6 +62,7 @@ export function AuthShell({
               ))}
             </ul>
           </div>
+          {asideExtra}
         </aside>
       </motion.div>
     </div>

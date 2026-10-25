@@ -6,8 +6,47 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Spinner } from "@/components/ui/Spinner";
 import { ApiError } from "@/lib/api";
 import { ROLE_HOME, safeNext } from "@/lib/auth";
+import type { Role } from "@/lib/types";
 import { useAuth } from "./AuthProvider";
 import { AuthShell, Field, FormError, buttonClass } from "./AuthShell";
+
+const DEMO_PASSWORD = "password123";
+
+const DEMO_ACCOUNTS: { role: Role; email: string }[] = [
+  { role: "buyer", email: "jane@example.com" },
+  { role: "seller", email: "alice@example.com" },
+  { role: "admin", email: "john@example.com" },
+];
+
+function DemoAccounts({ onPick }: { onPick: (email: string, password: string) => void }) {
+  return (
+    <div className="rounded-2xl bg-white p-5 text-ink shadow-sm ring-1 ring-black/5">
+      <p className="text-sm font-bold">Try a demo account</p>
+      <p className="mt-1 text-xs text-muted">
+        Pick a role to fill the form. Password: <b className="text-ink">{DEMO_PASSWORD}</b>
+      </p>
+      <ul className="mt-4 space-y-2">
+        {DEMO_ACCOUNTS.map((account) => (
+          <li key={account.role}>
+            <button
+              type="button"
+              onClick={() => onPick(account.email, DEMO_PASSWORD)}
+              className="flex w-full items-center justify-between gap-3 rounded-xl border border-line px-4 py-2.5 text-left transition hover:border-ink hover:shadow-sm"
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold capitalize">{account.role}</span>
+                <span className="block truncate text-xs text-muted">{account.email}</span>
+              </span>
+              <span className="shrink-0 text-xs font-semibold underline underline-offset-4">
+                Use
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function LoginForm() {
   const { user, login } = useAuth();
@@ -35,6 +74,12 @@ export function LoginForm() {
     }
   }
 
+  function fill(nextEmail: string, nextPassword: string) {
+    setEmail(nextEmail);
+    setPassword(nextPassword);
+    setError(null);
+  }
+
   return (
     <AuthShell
       title="Welcome back"
@@ -42,10 +87,8 @@ export function LoginForm() {
       aside={{
         eyebrow: "RevoShop",
         title: "Everything you need, one account.",
-        points: ["Track every order in one place", "Faster checkout", "Sell your own products"],
-        scene: "hills",
-        palette: "peach",
       }}
+      asideExtra={<DemoAccounts onPick={fill} />}
     >
       <form onSubmit={onSubmit} className="space-y-5" noValidate>
         <Field
@@ -83,6 +126,9 @@ export function LoginForm() {
           Create one
         </Link>
       </p>
+      <div className="mt-8 lg:hidden">
+        <DemoAccounts onPick={fill} />
+      </div>
     </AuthShell>
   );
 }
