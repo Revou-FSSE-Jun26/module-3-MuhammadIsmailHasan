@@ -3,15 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { RequireRole } from "@/components/auth/RequireRole";
 import { useCart } from "@/components/cart/CartProvider";
 import { ProductImage } from "@/components/product/ProductImage";
 import { useToast } from "@/components/ui/ToastProvider";
-import { Spinner } from "@/components/ui/Spinner";
+import { LoadingBlock, Spinner } from "@/components/ui/Spinner";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
-import { ApiError, addressApi, orderApi } from "@/lib/api";
-import { buildOrderPayload } from "@/lib/checkout";
+import { ApiError, addressApi } from "@/lib/api";
 import { cn, formatPrice } from "@/lib/format";
 import type { Address } from "@/lib/types";
 import { AddressForm } from "./AddressForm";
@@ -25,9 +23,8 @@ export function CheckoutView() {
 }
 
 function Checkout() {
-  const { authed } = useAuth();
   const toast = useToast();
-  const { items, subtotal, clear } = useCart();
+  const { items, subtotal, checkout, loading } = useCart();
   const router = useRouter();
   const { state, reload } = useAuthedQuery("addresses", (token) => addressApi.list(token));
   const [chosen, setChosen] = useState<number | null>(null);
@@ -43,16 +40,21 @@ function Checkout() {
     setError(null);
     setPending(true);
     try {
-      const order = await authed((token) =>
-        orderApi.create(token, buildOrderPayload(items, selected)),
-      );
-      clear();
+      const order = await checkout(selected ? { address_id: selected } : {});
       toast.success("Order placed");
       router.replace(`/dashboard/buyer/orders/${order.id}?placed=1`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the server. Try again.");
       setPending(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6" aria-busy="true">
+        <LoadingBlock label="Loading your cart…" />
+      </div>
+    );
   }
 
   if (items.length === 0 && !pending) {

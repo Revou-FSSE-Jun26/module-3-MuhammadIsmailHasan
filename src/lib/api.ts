@@ -1,5 +1,9 @@
 import type {
   Address,
+  ApiCart,
+  ApiCartItem,
+  CartItem,
+  CheckoutPayload,
   AddressPayload,
   Profile,
   ProfilePayload,
@@ -297,6 +301,70 @@ export const orderApi = {
       body: { status, ...(trackingId ? { tracking_id: trackingId } : {}) },
     }).then(unwrap),
 };
+
+// ---------- Cart ----------
+export const cartApi = {
+  get: (token: string) => request<ApiEnvelope<ApiCart>>("/cart", { token }).then(unwrap),
+  add: (token: string, productId: number, quantity = 1) =>
+    request<ApiEnvelope<ApiCart>>("/cart/items", {
+      method: "POST",
+      token,
+      body: { product_id: productId, quantity },
+    }).then(unwrap),
+  setQuantity: (token: string, itemId: number, quantity: number) =>
+    request<ApiEnvelope<ApiCart>>(`/cart/items/${itemId}`, {
+      method: "PUT",
+      token,
+      body: { quantity },
+    }).then(unwrap),
+  remove: (token: string, itemId: number) =>
+    request<ApiEnvelope<ApiCart>>(`/cart/items/${itemId}`, { method: "DELETE", token }).then(
+      unwrap,
+    ),
+  clear: (token: string) =>
+    request<ApiEnvelope<ApiCart>>("/cart", { method: "DELETE", token }).then(unwrap),
+  checkout: (token: string, payload: CheckoutPayload) =>
+    request<ApiEnvelope<Order>>("/cart/checkout", {
+      method: "POST",
+      token,
+      body: payload,
+    }).then(unwrap),
+};
+
+const RESOLVABLE_IMAGE = /^(https?:)?\//;
+
+function toCartProduct(p: ApiCartItem["product"]): Product {
+  const image = p.image && RESOLVABLE_IMAGE.test(p.image) ? imageUrl(p.image) : "";
+  return {
+    id: p.id,
+    slug: p.slug,
+    title: p.name,
+    price: p.price,
+    stock: p.stock,
+    description: "",
+    image,
+    images: image ? [image] : [],
+    category: "",
+    categoryId: null,
+    subCategory: "",
+    subCategoryId: null,
+  };
+}
+
+export function toCartItems(cart: ApiCart): CartItem[] {
+  return cart.groups.flatMap((group) =>
+    group.items.map((item) => ({
+      product: { ...toCartProduct(item.product), price: item.unit_price },
+      quantity: item.quantity,
+      itemId: item.id,
+      sellerId: group.seller_id,
+      sellerName: group.seller_name,
+      available: item.available,
+      note: item.note,
+      needsImage: Boolean(item.product.image) && !RESOLVABLE_IMAGE.test(item.product.image ?? ""),
+    })),
+  );
+}
 
 // ---------- View-model mapper + page-level readers ----------
 export function toProduct(p: ProductSummary | ProductDetail): Product {

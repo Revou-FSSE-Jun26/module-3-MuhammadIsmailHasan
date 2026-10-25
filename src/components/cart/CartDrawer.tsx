@@ -1,16 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
 import { useCart } from "./CartProvider";
 import { Icon } from "@/components/ui/Icon";
+import { Spinner } from "@/components/ui/Spinner";
 import { ProductImage } from "@/components/product/ProductImage";
-import { formatPrice } from "@/lib/format";
+import { cn, formatPrice } from "@/lib/format";
 import { siteConfig } from "@/lib/site";
 
 export function CartDrawer() {
-  const { isOpen, close, items, subtotal, setQuantity, remove } = useCart();
+  const {
+    isOpen,
+    close,
+    items,
+    subtotal,
+    setQuantity,
+    remove,
+    loading,
+    loadFailed,
+    reload,
+    isGuest,
+    busy,
+  } = useCart();
+  const pathname = usePathname();
   const threshold = siteConfig.freeShippingThreshold;
   const remaining = Math.max(0, threshold - subtotal);
   const progress = Math.min(1, subtotal / threshold);
@@ -52,7 +67,17 @@ export function CartDrawer() {
             }}
           >
             <div className="flex items-center justify-between border-b border-line px-6 py-5">
-              <h2 className="text-lg font-bold">Your cart</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-bold">Your cart</h2>
+                {busy && (
+                  <span
+                    className="flex items-center gap-2 text-xs font-medium text-muted"
+                    role="status"
+                  >
+                    <Spinner className="size-3.5 text-ink" /> Saving…
+                  </span>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={close}
@@ -87,7 +112,43 @@ export function CartDrawer() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6">
-              {items.length === 0 ? (
+              {isGuest ? (
+                <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+                  <span className="grid size-20 place-items-center rounded-full bg-[#f3f3f3]">
+                    <Icon name="bag" size={32} />
+                  </span>
+                  <p className="font-semibold">Sign in to see your cart</p>
+                  <p className="max-w-xs text-sm text-muted">
+                    Your cart is saved to your account, so it follows you on any device.
+                  </p>
+                  <Link
+                    href={`/login?next=${encodeURIComponent(pathname)}`}
+                    onClick={close}
+                    className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white"
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              ) : loading ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3 text-sm text-muted">
+                  <Spinner className="size-6 text-ink" />
+                  Loading your cart…
+                  <span className="max-w-xs text-center text-xs">
+                    The first request can take up to a minute while the server wakes up.
+                  </span>
+                </div>
+              ) : loadFailed && items.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+                  <p className="font-semibold">Could not load your cart</p>
+                  <button
+                    type="button"
+                    onClick={reload}
+                    className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : items.length === 0 ? (
                 <motion.div
                   className="flex h-full flex-col items-center justify-center gap-4 text-center"
                   initial={{ opacity: 0, y: 20 }}
@@ -108,7 +169,7 @@ export function CartDrawer() {
               ) : (
                 <ul className="divide-y divide-line">
                   <AnimatePresence initial={false}>
-                    {items.map(({ product, quantity }) => (
+                    {items.map(({ product, quantity, note, available, pending }) => (
                       <motion.li
                         key={product.id}
                         layout
@@ -122,7 +183,10 @@ export function CartDrawer() {
                           paddingBottom: 0,
                         }}
                         transition={{ duration: 0.35 }}
-                        className="flex gap-4 overflow-hidden py-5"
+                        className={cn(
+                          "flex gap-4 overflow-hidden py-5 transition-opacity",
+                          pending && "opacity-60",
+                        )}
                       >
                         <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-[#f2f2f2]">
                           <ProductImage
@@ -144,16 +208,27 @@ export function CartDrawer() {
                           <span className="mt-1 text-sm text-muted">
                             {formatPrice(product.price)}
                           </span>
+                          {note && (
+                            <span
+                              className={
+                                available === false ? "text-xs text-coral" : "text-xs text-muted"
+                              }
+                            >
+                              {note}
+                            </span>
+                          )}
                           <div className="mt-auto flex items-center justify-between pt-2">
                             <QuantityStepper
                               value={quantity}
                               onChange={(q) => setQuantity(product.id, q)}
                               label={product.title}
+                              disabled={pending}
                             />
                             <button
                               type="button"
                               onClick={() => remove(product.id)}
-                              className="text-xs text-muted underline hover:text-ink"
+                              disabled={pending}
+                              className="text-xs text-muted underline hover:text-ink disabled:opacity-40"
                             >
                               Remove
                             </button>
@@ -201,17 +276,20 @@ export function QuantityStepper({
   value,
   onChange,
   label,
+  disabled,
 }: {
   value: number;
   onChange: (v: number) => void;
   label: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-center rounded-full border border-line">
       <button
         type="button"
         onClick={() => onChange(value - 1)}
-        className="grid size-9 place-items-center"
+        disabled={disabled}
+        className="grid size-9 place-items-center disabled:opacity-40"
         aria-label={`Decrease quantity of ${label}`}
       >
         <Icon name="minus" size={14} />
@@ -222,7 +300,8 @@ export function QuantityStepper({
       <button
         type="button"
         onClick={() => onChange(value + 1)}
-        className="grid size-9 place-items-center"
+        disabled={disabled}
+        className="grid size-9 place-items-center disabled:opacity-40"
         aria-label={`Increase quantity of ${label}`}
       >
         <Icon name="plus" size={14} />

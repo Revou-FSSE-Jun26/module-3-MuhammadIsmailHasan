@@ -1,16 +1,22 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useToast } from "@/components/ui/ToastProvider";
+import { ApiError, cartApi, productApi, toCartItems, toProduct } from "@/lib/api";
 import { clampQuantity } from "@/lib/cart";
-import type { CartItem, Product } from "@/lib/types";
+import type { ApiCart, CartItem, CheckoutPayload, Order, Product } from "@/lib/types";
 
 type CartContextValue = {
   items: CartItem[];
@@ -23,18 +29,24 @@ type CartContextValue = {
   setQuantity: (id: number, quantity: number) => void;
   remove: (id: number) => void;
   clear: () => void;
+  checkout: (payload: CheckoutPayload) => Promise<Order>;
+  busy: boolean;
+  loading: boolean;
+  loadFailed: boolean;
+  reload: () => void;
+  canShop: boolean;
+  isGuest: boolean;
   wishlist: number[];
   toggleWish: (id: number) => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-type Stored = { items: CartItem[]; wishlist: number[] };
+type Stored = { wishlist: number[] };
 
 const STORAGE_KEY = "revoshop-cart-v1";
-const EMPTY: Stored = { items: [], wishlist: [] };
+const EMPTY: Stored = { wishlist: [] };
 
-// Cached copy: React needs the exact same object back until the data really changes.
 let snapshot: Stored | null = null;
 const listeners = new Set<() => void>();
 
@@ -45,10 +57,10 @@ function getSnapshot(): Stored {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw) as Partial<Stored>;
-        snapshot = { items: saved.items ?? [], wishlist: saved.wishlist ?? [] };
+        snapshot = { wishlist: saved.wishlist ?? [] };
       }
     } catch {
-      /* storage unavailable or invalid JSON: start with an empty cart */
+      /* storage unavailable or invalid JSON: start with an empty wishlist */
     }
   }
   return snapshot;
@@ -75,55 +87,221 @@ function update(change: (current: Stored) => Stored) {
   listeners.forEach((notify) => notify());
 }
 
+type ServerCart = { userId: number; items: CartItem[] };
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { items, wishlist } = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const local = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const { user, status, authed } = useAuth();
+  const toast = useToast();
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [server, setServer] = useState<ServerCart | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [imageFix, setImageFix] = useState<Record<number, string>>({});
+  const loadedFor = useRef<number | null>(null);
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const inflight = useRef(0);
+  const failed = useRef(false);
+  const requestedImages = useRef(new Set<number>());
 
-  const add = useCallback((product: Product, quantity = 1) => {
-    update((current) => {
-      const existing = current.items.find((i) => i.product.id === product.id);
-      const nextItems = existing
-        ? current.items.map((i) =>
-            i.product.id === product.id
-              ? { ...i, quantity: clampQuantity(i.quantity + quantity, product.stock) }
-              : i,
-          )
-        : [...current.items, { product, quantity: clampQuantity(quantity, product.stock) }];
-      return { ...current, items: nextItems };
+  const buyerId = status === "ready" && user?.role === "buyer" ? user.id : null;
+  const isGuest = status === "ready" && !user;
+  const canShop = !user || user.role === "buyer";
+  const serverReady = buyerId !== null && server?.userId === buyerId;
+  const loading = buyerId !== null && !serverReady && !loadFailed;
+
+  const items = useMemo(() => {
+    if (buyerId === null || !serverReady) return [];
+    return server.items.map((item) => {
+      const fixed = imageFix[item.product.id];
+      return fixed
+        ? { ...item, product: { ...item.product, image: fixed, images: [fixed] } }
+        : item;
     });
-    setIsOpen(true);
+  }, [buyerId, serverReady, server, imageFix]);
+  const wishlist = useMemo(() => (canShop ? local.wishlist : []), [canShop, local.wishlist]);
+
+  const apply = useCallback((userId: number, cart: ApiCart) => {
+    setServer({ userId, items: toCartItems(cart) });
   }, []);
 
-  const setQuantity = useCallback((id: number, quantity: number) => {
-    update((current) => ({
-      ...current,
-      items:
-        quantity <= 0
-          ? current.items.filter((i) => i.product.id !== id)
-          : current.items.map((i) =>
-              i.product.id === id
-                ? { ...i, quantity: clampQuantity(quantity, i.product.stock) }
+  const enqueue = useCallback(
+    (
+      userId: number,
+      action: (token: string) => Promise<ApiCart>,
+      options: {
+        optimistic?: (current: CartItem[]) => CartItem[];
+        onFail?: (error: unknown) => void;
+      } = {},
+    ) => {
+      const { optimistic, onFail } = options;
+      if (optimistic) {
+        setServer((current) => ({
+          userId,
+          items: optimistic(current?.userId === userId ? current.items : []),
+        }));
+      }
+      inflight.current += 1;
+      setBusy(true);
+      queue.current = queue.current.then(async () => {
+        try {
+          const cart = await authed(action);
+          if (inflight.current === 1) apply(userId, cart);
+        } catch (error) {
+          failed.current = true;
+          if (onFail) onFail(error);
+          else
+            toast.error(error instanceof ApiError ? error.message : "Could not update your cart.");
+        } finally {
+          inflight.current -= 1;
+          if (inflight.current === 0) {
+            setBusy(false);
+            if (failed.current) {
+              failed.current = false;
+              try {
+                apply(userId, await authed((token) => cartApi.get(token)));
+              } catch {
+                setLoadFailed(true);
+              }
+            }
+          }
+        }
+      });
+    },
+    [authed, apply, toast],
+  );
+
+  useEffect(() => {
+    if (buyerId === null) {
+      loadedFor.current = null;
+      return;
+    }
+    if (loadedFor.current === buyerId) return;
+    loadedFor.current = buyerId;
+    enqueue(buyerId, (token) => cartApi.get(token), {
+      onFail: () => {
+        loadedFor.current = null;
+        setLoadFailed(true);
+      },
+    });
+  }, [buyerId, attempt, enqueue]);
+
+  useEffect(() => {
+    if (!serverReady) return;
+    const missing = server.items
+      .filter((i) => i.needsImage && !requestedImages.current.has(i.product.id))
+      .map((i) => i.product.id);
+    if (missing.length === 0) return;
+    missing.forEach((id) => requestedImages.current.add(id));
+    Promise.allSettled(missing.map((id) => productApi.get(id))).then((results) => {
+      const found: Record<number, string> = {};
+      results.forEach((result) => {
+        if (result.status !== "fulfilled") return;
+        const product = toProduct(result.value);
+        if (product.image) found[product.id] = product.image;
+      });
+      setImageFix((prev) => ({ ...prev, ...found }));
+    });
+  }, [serverReady, server]);
+
+  const reload = useCallback(() => {
+    setLoadFailed(false);
+    setAttempt((n) => n + 1);
+  }, []);
+
+  const add = useCallback(
+    (product: Product, quantity = 1) => {
+      if (!canShop || status !== "ready") return;
+      if (buyerId === null) {
+        router.push(`/login?next=${encodeURIComponent(pathname)}`);
+        return;
+      }
+      if (product.image) setImageFix((prev) => ({ ...prev, [product.id]: product.image }));
+      setIsOpen(true);
+      enqueue(buyerId, (token) => cartApi.add(token, product.id, quantity), {
+        optimistic: (current) => {
+          const existing = current.find((i) => i.product.id === product.id);
+          if (existing) {
+            return current.map((i) =>
+              i.product.id === product.id
+                ? {
+                    ...i,
+                    quantity: clampQuantity(i.quantity + quantity, i.product.stock),
+                    pending: true,
+                  }
                 : i,
-            ),
-    }));
-  }, []);
+            );
+          }
+          return [
+            ...current,
+            { product, quantity: clampQuantity(quantity, product.stock), pending: true },
+          ];
+        },
+      });
+    },
+    [canShop, status, buyerId, router, pathname, enqueue],
+  );
 
-  const remove = useCallback((id: number) => {
-    update((current) => ({ ...current, items: current.items.filter((i) => i.product.id !== id) }));
-  }, []);
+  const setQuantity = useCallback(
+    (id: number, quantity: number) => {
+      if (buyerId === null) return;
+      const item = items.find((i) => i.product.id === id);
+      if (!item?.itemId || item.pending) return;
+      const itemId = item.itemId;
+      const next = quantity <= 0 ? 0 : clampQuantity(quantity, item.product.stock);
+      enqueue(buyerId, (token) => cartApi.setQuantity(token, itemId, next), {
+        optimistic: (current) =>
+          next === 0
+            ? current.filter((i) => i.product.id !== id)
+            : current.map((i) => (i.product.id === id ? { ...i, quantity: next } : i)),
+      });
+    },
+    [buyerId, items, enqueue],
+  );
+
+  const remove = useCallback(
+    (id: number) => {
+      if (buyerId === null) return;
+      const item = items.find((i) => i.product.id === id);
+      if (!item?.itemId || item.pending) return;
+      const itemId = item.itemId;
+      enqueue(buyerId, (token) => cartApi.remove(token, itemId), {
+        optimistic: (current) => current.filter((i) => i.product.id !== id),
+      });
+    },
+    [buyerId, items, enqueue],
+  );
 
   const clear = useCallback(() => {
-    update((current) => ({ ...current, items: [] }));
-  }, []);
+    if (buyerId === null) return;
+    enqueue(buyerId, (token) => cartApi.clear(token), { optimistic: () => [] });
+  }, [buyerId, enqueue]);
 
-  const toggleWish = useCallback((id: number) => {
-    update((current) => ({
-      ...current,
-      wishlist: current.wishlist.includes(id)
-        ? current.wishlist.filter((x) => x !== id)
-        : [...current.wishlist, id],
-    }));
-  }, []);
+  const checkout = useCallback(
+    async (payload: CheckoutPayload) => {
+      if (buyerId === null) throw new ApiError(403, "Only buyers can check out.");
+      await queue.current;
+      const order = await authed((token) => cartApi.checkout(token, payload));
+      apply(buyerId, await authed((token) => cartApi.get(token)));
+      return order;
+    },
+    [buyerId, authed, apply],
+  );
+
+  const toggleWish = useCallback(
+    (id: number) => {
+      if (!canShop) return;
+      update((current) => ({
+        wishlist: current.wishlist.includes(id)
+          ? current.wishlist.filter((x) => x !== id)
+          : [...current.wishlist, id],
+      }));
+    },
+    [canShop],
+  );
 
   const value = useMemo<CartContextValue>(() => {
     const count = items.reduce((n, i) => n + i.quantity, 0);
@@ -139,10 +317,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setQuantity,
       remove,
       clear,
+      checkout,
+      busy,
+      loading,
+      loadFailed,
+      reload,
+      canShop,
+      isGuest,
       wishlist,
       toggleWish,
     };
-  }, [items, isOpen, add, setQuantity, remove, clear, wishlist, toggleWish]);
+  }, [
+    items,
+    isOpen,
+    add,
+    setQuantity,
+    remove,
+    clear,
+    checkout,
+    busy,
+    loading,
+    loadFailed,
+    reload,
+    canShop,
+    isGuest,
+    wishlist,
+    toggleWish,
+  ]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

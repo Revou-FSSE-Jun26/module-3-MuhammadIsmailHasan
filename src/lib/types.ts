@@ -214,4 +214,53 @@ export type Product = {
 export type CartItem = {
   product: Product;
   quantity: number;
+  itemId?: number;
+  sellerId?: number | null;
+  sellerName?: string | null;
+  available?: boolean;
+  note?: string | null;
+  pending?: boolean;
+  needsImage?: boolean;
+};
+
+export type ApiCartItem = {
+  id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  sub_total: number;
+  available: boolean;
+  note: string | null;
+  product: {
+    id: number;
+    name: string;
+    slug: string;
+    price: number;
+    stock: number;
+    is_active: boolean;
+    image: string | null;
+  };
+};
+
+export type ApiCartGroup = {
+  seller_id: number | null;
+  seller_name: string | null;
+  items: ApiCartItem[];
+  group_total_items: number;
+  group_total_quantity: number;
+  group_total: number;
+};
+
+export type ApiCart = {
+  cart_id: number | null;
+  groups: ApiCartGroup[];
+  total_items: number;
+  total_quantity: number;
+  grand_total: number;
+};
+
+export type CheckoutPayload = {
+  address_id?: number;
+  seller_id?: number;
+  cart_item_ids?: number[];
 };
