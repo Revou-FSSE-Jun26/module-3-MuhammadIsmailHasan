@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Field, FormError, buttonClass, inputClass } from "@/components/auth/AuthShell";
+import { Field, FormError, buttonClass } from "@/components/auth/AuthShell";
+import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/ToastProvider";
 import { Spinner } from "@/components/ui/Spinner";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
@@ -96,40 +97,36 @@ export function ProductForm({
         />
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
-        <label className="block text-sm font-semibold">
+        <div className="text-sm font-semibold">
           <span className="mb-1.5 block">Category</span>
-          <select
+          <Select
             value={categoryId}
-            onChange={(e) => {
-              setCategoryId(e.target.value);
+            onChange={(next) => {
+              setCategoryId(next);
               setSubId("");
             }}
-            className={inputClass}
-          >
-            <option value="">Select…</option>
-            {tree.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm font-semibold">
+            options={[
+              { value: "", label: "Select…" },
+              ...tree.map((c) => ({ value: String(c.id), label: c.name })),
+            ]}
+            label="Category"
+            className="w-full"
+          />
+        </div>
+        <div className="text-sm font-semibold">
           <span className="mb-1.5 block">Sub-category</span>
-          <select
+          <Select
             value={subId}
-            onChange={(e) => setSubId(e.target.value)}
+            onChange={setSubId}
             disabled={!categoryId}
-            className={inputClass}
-          >
-            <option value="">Select…</option>
-            {subs.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
+            options={[
+              { value: "", label: "Select…" },
+              ...subs.map((s) => ({ value: String(s.id), label: s.name })),
+            ]}
+            label="Sub-category"
+            className="w-full"
+          />
+        </div>
       </div>
       <label className="block text-sm font-semibold">
         <span className="mb-1.5 block">Description</span>

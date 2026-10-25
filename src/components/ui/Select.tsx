@@ -13,12 +13,14 @@ export function Select<T extends string>({
   options,
   label,
   className,
+  disabled,
 }: {
   value: T;
   onChange: (value: T) => void;
   options: SelectOption<T>[];
   label: string;
   className?: string;
+  disabled?: boolean;
 }) {
   const id = useId();
   const root = useRef<HTMLDivElement>(null);
@@ -83,6 +85,7 @@ export function Select<T extends string>({
         type="button"
         role="combobox"
         aria-label={label}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${id}-list`}
@@ -90,8 +93,10 @@ export function Select<T extends string>({
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={onKeyDown}
         className={cn(
-          "flex h-10 w-full min-w-44 max-w-full items-center justify-between gap-3 rounded-full border bg-white px-4 text-sm font-medium outline-none transition",
-          open ? "border-ink shadow-sm" : "border-line hover:border-ink focus-visible:border-ink",
+          "flex h-10 w-full min-w-44 max-w-full items-center justify-between gap-3 rounded-full border bg-white px-4 text-sm font-medium outline-none transition disabled:cursor-not-allowed disabled:opacity-50",
+          open
+            ? "border-ink shadow-sm"
+            : "border-line enabled:hover:border-ink focus-visible:border-ink",
         )}
       >
         <span className="truncate">{selected?.label}</span>
