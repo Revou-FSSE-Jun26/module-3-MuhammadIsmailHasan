@@ -152,6 +152,8 @@ export function ProductDetail({ product }: { product: Product }) {
             {product.title}
           </h1>,
           <p key="stock" className={cn("mt-3 text-sm", soldOut ? "text-coral" : "text-muted")}>
+            Sold by{" "}
+            <b className="font-semibold text-ink">{product.seller?.name ?? siteConfig.name}</b> ·{" "}
             {soldOut ? "Sold out" : `${product.stock} in stock`}
           </p>,
           <p key="price" className="mt-6 text-3xl font-bold">

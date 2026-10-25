@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { Icon } from "@/components/ui/Icon";
 import { cn, formatPrice } from "@/lib/format";
+import { siteConfig } from "@/lib/site";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "./ProductImage";
 
@@ -117,6 +118,9 @@ export function ProductCard({ product, priority }: { product: Product; priority?
         >
           {product.title}
         </Link>
+        <p className="truncate text-xs text-muted">
+          by <span className="font-medium text-ink">{product.seller?.name ?? siteConfig.name}</span>
+        </p>
         <div className="mt-auto flex flex-col gap-0.5 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-bold">{formatPrice(product.price)}</span>
           <span className={cn("text-xs", product.stock > 0 ? "text-muted" : "text-coral")}>
