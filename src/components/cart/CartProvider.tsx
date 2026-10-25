@@ -17,7 +17,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError, cartApi, productApi, toCartItems, toProduct } from "@/lib/api";
 import { loginUrl } from "@/lib/auth";
 import { clampQuantity } from "@/lib/cart";
-import type { ApiCart, CartItem, CheckoutPayload, Order, Product } from "@/lib/types";
+import type { ApiCart, CartGroup, CartItem, Order, Product } from "@/lib/types";
 
 type CartContextValue = {
   items: CartItem[];
@@ -30,7 +30,15 @@ type CartContextValue = {
   setQuantity: (id: number, quantity: number) => void;
   remove: (id: number) => void;
   clear: () => void;
-  checkout: (payload: CheckoutPayload) => Promise<Order>;
+  checkout: (addressId: number | null) => Promise<Order[]>;
+  groups: CartGroup[];
+  selectedItems: CartItem[];
+  selectedCount: number;
+  selectedSubtotal: number;
+  isSelected: (productId: number) => boolean;
+  toggleSelect: (productId: number) => void;
+  setGroupSelected: (key: string, selected: boolean) => void;
+  setAllSelected: (selected: boolean) => void;
   busy: boolean;
   loading: boolean;
   loadFailed: boolean;
@@ -100,6 +108,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [deselected, setDeselected] = useState<number[]>([]);
   const [imageFix, setImageFix] = useState<Record<number, string>>({});
   const loadedFor = useRef<number | null>(null);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
@@ -122,6 +131,57 @@ export function CartProvider({ children }: { children: ReactNode }) {
         : item;
     });
   }, [buyerId, serverReady, server, imageFix]);
+  const groups = useMemo<CartGroup[]>(() => {
+    const byKey = new Map<string, CartGroup>();
+    for (const item of items) {
+      const key = String(item.sellerId ?? "unknown");
+      const group = byKey.get(key) ?? {
+        key,
+        sellerId: item.sellerId ?? null,
+        sellerName: item.sellerName ?? "Unknown seller",
+        items: [],
+      };
+      group.items.push(item);
+      byKey.set(key, group);
+    }
+    return [...byKey.values()];
+  }, [items]);
+
+  const selectedItems = useMemo(
+    () => items.filter((i) => !deselected.includes(i.product.id)),
+    [items, deselected],
+  );
+
+  const isSelected = useCallback(
+    (productId: number) => !deselected.includes(productId),
+    [deselected],
+  );
+
+  const toggleSelect = useCallback((productId: number) => {
+    setDeselected((current) =>
+      current.includes(productId)
+        ? current.filter((x) => x !== productId)
+        : [...current, productId],
+    );
+  }, []);
+
+  const setGroupSelected = useCallback(
+    (key: string, selected: boolean) => {
+      const ids = groups.find((g) => g.key === key)?.items.map((i) => i.product.id) ?? [];
+      setDeselected((current) =>
+        selected ? current.filter((x) => !ids.includes(x)) : [...new Set([...current, ...ids])],
+      );
+    },
+    [groups],
+  );
+
+  const setAllSelected = useCallback(
+    (selected: boolean) => {
+      setDeselected(selected ? [] : items.map((i) => i.product.id));
+    },
+    [items],
+  );
+
   const wishlist = useMemo(() => (canShop ? local.wishlist : []), [canShop, local.wishlist]);
 
   const apply = useCallback((userId: number, cart: ApiCart) => {
@@ -237,7 +297,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           return [
             ...current,
-            { product, quantity: clampQuantity(quantity, product.stock), pending: true },
+            {
+              product,
+              quantity: clampQuantity(quantity, product.stock),
+              pending: true,
+              sellerId: product.seller?.id ?? null,
+              sellerName: product.seller?.name ?? null,
+            },
           ];
         },
       });
@@ -281,14 +347,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [buyerId, enqueue]);
 
   const checkout = useCallback(
-    async (payload: CheckoutPayload) => {
+    async (addressId: number | null) => {
       if (buyerId === null) throw new ApiError(403, "Only buyers can check out.");
       await queue.current;
-      const order = await authed((token) => cartApi.checkout(token, payload));
+      const ids = selectedItems.flatMap((i) => (i.itemId ? [i.itemId] : []));
+      if (ids.length === 0) throw new ApiError(400, "Select at least one item to check out.");
+      const orders = await authed((token) =>
+        cartApi.checkout(token, {
+          cart_item_ids: ids,
+          ...(addressId ? { address_id: addressId } : {}),
+        }),
+      );
       apply(buyerId, await authed((token) => cartApi.get(token)));
-      return order;
+      return orders;
     },
-    [buyerId, authed, apply],
+    [buyerId, selectedItems, authed, apply],
   );
 
   const toggleWish = useCallback(
@@ -306,6 +379,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CartContextValue>(() => {
     const count = items.reduce((n, i) => n + i.quantity, 0);
     const subtotal = items.reduce((n, i) => n + i.quantity * i.product.price, 0);
+    const selectedCount = selectedItems.reduce((n, i) => n + i.quantity, 0);
+    const selectedSubtotal = selectedItems.reduce((n, i) => n + i.quantity * i.product.price, 0);
     return {
       items,
       count,
@@ -318,6 +393,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       remove,
       clear,
       checkout,
+      groups,
+      selectedItems,
+      selectedCount,
+      selectedSubtotal,
+      isSelected,
+      toggleSelect,
+      setGroupSelected,
+      setAllSelected,
       busy,
       loading,
       loadFailed,
@@ -335,6 +418,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     remove,
     clear,
     checkout,
+    groups,
+    selectedItems,
+    isSelected,
+    toggleSelect,
+    setGroupSelected,
+    setAllSelected,
     busy,
     loading,
     loadFailed,

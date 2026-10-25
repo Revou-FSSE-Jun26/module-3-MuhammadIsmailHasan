@@ -24,7 +24,8 @@ export function CheckoutView() {
 
 function Checkout() {
   const toast = useToast();
-  const { items, subtotal, checkout, loading } = useCart();
+  const { groups, selectedItems, selectedSubtotal, selectedCount, checkout, loading, open } =
+    useCart();
   const router = useRouter();
   const { state, reload } = useAuthedQuery("addresses", (token) => addressApi.list(token));
   const [chosen, setChosen] = useState<number | null>(null);
@@ -40,9 +41,9 @@ function Checkout() {
     setError(null);
     setPending(true);
     try {
-      const order = await checkout(selected ? { address_id: selected } : {});
-      toast.success("Order placed");
-      router.replace(`/dashboard/buyer/orders/${order.id}?placed=1`);
+      const orders = await checkout(selected);
+      toast.success(orders.length > 1 ? `${orders.length} orders placed` : "Order placed");
+      router.replace(`/dashboard/buyer/orders?placed=${orders.length}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the server. Try again.");
       setPending(false);
@@ -57,17 +58,28 @@ function Checkout() {
     );
   }
 
-  if (items.length === 0 && !pending) {
+  if (selectedItems.length === 0 && !pending) {
     return (
       <div className="mx-auto max-w-xl px-4 py-32 text-center">
-        <h1 className="text-2xl font-bold">Your cart is empty</h1>
-        <p className="mt-2 text-muted">Add something you like, then come back to check out.</p>
-        <Link
-          href="/collections/all"
-          className="mt-8 inline-block rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white"
-        >
-          Browse products
-        </Link>
+        <h1 className="text-2xl font-bold">Nothing to check out</h1>
+        <p className="mt-2 text-muted">
+          Pick the items you want in your cart, then come back to check out.
+        </p>
+        <div className="mt-8 flex justify-center gap-3">
+          <button
+            type="button"
+            onClick={open}
+            className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white"
+          >
+            Open cart
+          </button>
+          <Link
+            href="/collections/all"
+            className="rounded-full border border-line px-6 py-3 text-sm font-semibold"
+          >
+            Browse products
+          </Link>
+        </div>
       </div>
     );
   }
@@ -158,31 +170,52 @@ function Checkout() {
 
       <aside className="h-fit rounded-3xl border border-line bg-white p-6 lg:sticky lg:top-28">
         <h2 className="text-lg font-bold">Order summary</h2>
-        <ul className="mt-4 divide-y divide-line">
-          {items.map(({ product, quantity }) => (
-            <li key={product.id} className="flex gap-3 py-3">
-              <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-[#f2f2f2]">
-                <ProductImage
-                  src={product.image}
-                  alt={product.title}
-                  id={product.id}
-                  sizes="64px"
-                  className="p-1"
-                />
-              </div>
-              <div className="min-w-0 flex-1 text-sm">
-                <p className="line-clamp-2 font-semibold">{product.title}</p>
-                <p className="text-muted">
-                  {quantity} × {formatPrice(product.price)}
+        <ul className="mt-4 space-y-5">
+          {groups.map((group) => {
+            const picked = group.items.filter((i) => selectedItems.includes(i));
+            if (picked.length === 0) return null;
+            const groupTotal = picked.reduce((n, i) => n + i.quantity * i.product.price, 0);
+            return (
+              <li key={group.key}>
+                <p className="flex items-center justify-between text-sm font-bold">
+                  <span>{group.sellerName}</span>
+                  <span className="text-xs font-medium text-muted">{formatPrice(groupTotal)}</span>
                 </p>
-              </div>
-              <p className="text-sm font-bold">{formatPrice(product.price * quantity)}</p>
-            </li>
-          ))}
+                <ul className="mt-1 divide-y divide-line">
+                  {picked.map(({ product, quantity }) => (
+                    <li key={product.id} className="flex gap-3 py-3">
+                      <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-[#f2f2f2]">
+                        <ProductImage
+                          src={product.image}
+                          alt={product.title}
+                          id={product.id}
+                          sizes="64px"
+                          className="p-1"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1 text-sm">
+                        <p className="line-clamp-2 font-semibold">{product.title}</p>
+                        <p className="text-muted">
+                          {quantity} × {formatPrice(product.price)}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold">{formatPrice(product.price * quantity)}</p>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            );
+          })}
         </ul>
+        {groups.filter((g) => g.items.some((i) => selectedItems.includes(i))).length > 1 && (
+          <p className="mt-4 rounded-xl bg-[#f6f6f6] px-4 py-3 text-xs text-muted">
+            Your items come from several sellers, so they will be placed as separate orders. Each
+            order has its own status.
+          </p>
+        )}
         <div className="mt-4 flex justify-between border-t border-line pt-4 font-bold">
-          <span>Total</span>
-          <span>{formatPrice(subtotal)}</span>
+          <span>Total ({selectedCount})</span>
+          <span>{formatPrice(selectedSubtotal)}</span>
         </div>
         {error && (
           <p

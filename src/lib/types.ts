@@ -66,6 +66,8 @@ export type Category = {
   sub_categories?: SubCategory[];
 };
 
+export type Seller = { id: number; name: string };
+
 /** List item from GET /products/ */
 export type ProductSummary = {
   id: number;
@@ -75,6 +77,7 @@ export type ProductSummary = {
   stock: number;
   image: string | null;
   sub_category?: { id: number; name: string; category_id: number | null } | null;
+  seller?: Seller | null;
 };
 
 /** Detail from GET /products/{id} or /products/slug/{slug} */
@@ -116,6 +119,7 @@ export type OrderItem = {
   unit_price: number;
   quantity: number;
   sub_total: number;
+  seller?: Seller | null;
   product?: {
     id: number;
     name: string;
@@ -141,6 +145,7 @@ export type Order = {
   total_items?: number;
   total_quantity?: number;
   refund_note?: string | null;
+  seller?: Seller | null;
   items?: OrderItem[];
 };
 
@@ -209,6 +214,7 @@ export type Product = {
   categoryId: number | null;
   subCategory: string;
   subCategoryId: number | null;
+  seller: Seller | null;
 };
 
 export type CartItem = {
@@ -221,6 +227,13 @@ export type CartItem = {
   note?: string | null;
   pending?: boolean;
   needsImage?: boolean;
+};
+
+export type CartGroup = {
+  key: string;
+  sellerId: number | null;
+  sellerName: string;
+  items: CartItem[];
 };
 
 export type ApiCartItem = {

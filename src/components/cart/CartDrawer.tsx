@@ -17,7 +17,13 @@ export function CartDrawer() {
     isOpen,
     close,
     items,
-    subtotal,
+    groups,
+    selectedCount,
+    selectedSubtotal,
+    isSelected,
+    toggleSelect,
+    setGroupSelected,
+    setAllSelected,
     setQuantity,
     remove,
     loading,
@@ -27,9 +33,10 @@ export function CartDrawer() {
     busy,
   } = useCart();
   const router = useRouter();
+  const allSelected = items.length > 0 && items.every((i) => isSelected(i.product.id));
   const threshold = siteConfig.freeShippingThreshold;
-  const remaining = Math.max(0, threshold - subtotal);
-  const progress = Math.min(1, subtotal / threshold);
+  const remaining = Math.max(0, threshold - selectedSubtotal);
+  const progress = Math.min(1, selectedSubtotal / threshold);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -171,102 +178,151 @@ export function CartDrawer() {
                   </Link>
                 </motion.div>
               ) : (
-                <ul className="divide-y divide-line">
-                  <AnimatePresence initial={false}>
-                    {items.map(({ product, quantity, note, available, pending }) => (
-                      <motion.li
-                        key={product.id}
-                        layout
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{
-                          opacity: 0,
-                          x: 40,
-                          height: 0,
-                          paddingTop: 0,
-                          paddingBottom: 0,
-                        }}
-                        transition={{ duration: 0.35 }}
-                        className={cn(
-                          "flex gap-4 overflow-hidden py-5 transition-opacity",
-                          pending && "opacity-60",
-                        )}
-                      >
-                        <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-[#f2f2f2]">
-                          <ProductImage
-                            src={product.image}
-                            alt={product.title}
-                            id={product.id}
-                            sizes="80px"
-                            className="p-2"
-                          />
-                        </div>
-                        <div className="flex flex-1 flex-col">
-                          <Link
-                            href={`/products/${product.slug}`}
-                            onClick={close}
-                            className="line-clamp-2 text-sm font-semibold hover:underline"
-                          >
-                            {product.title}
-                          </Link>
-                          <span className="mt-1 text-sm text-muted">
-                            {formatPrice(product.price)}
-                          </span>
-                          {note && (
-                            <span
-                              className={
-                                available === false ? "text-xs text-coral" : "text-xs text-muted"
-                              }
-                            >
-                              {note}
-                            </span>
-                          )}
-                          <div className="mt-auto flex items-center justify-between pt-2">
-                            <QuantityStepper
-                              value={quantity}
-                              onChange={(q) => setQuantity(product.id, q)}
-                              label={product.title}
-                              disabled={pending}
+                <div className="pb-4">
+                  <label className="flex items-center gap-3 py-4 text-sm font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={(e) => setAllSelected(e.target.checked)}
+                      className="size-4 accent-black"
+                    />
+                    Select all ({items.length})
+                  </label>
+                  <ul className="space-y-4">
+                    {groups.map((group) => {
+                      const groupChecked = group.items.every((i) => isSelected(i.product.id));
+                      return (
+                        <li key={group.key} className="rounded-2xl border border-line">
+                          <label className="flex items-center gap-3 border-b border-line px-4 py-3 text-sm font-bold">
+                            <input
+                              type="checkbox"
+                              checked={groupChecked}
+                              onChange={(e) => setGroupSelected(group.key, e.target.checked)}
+                              className="size-4 accent-black"
                             />
-                            <button
-                              type="button"
-                              onClick={() => remove(product.id)}
-                              disabled={pending}
-                              className="text-xs text-muted underline hover:text-ink disabled:opacity-40"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      </motion.li>
-                    ))}
-                  </AnimatePresence>
-                </ul>
+                            {group.sellerName}
+                          </label>
+                          <ul className="divide-y divide-line px-4">
+                            <AnimatePresence initial={false}>
+                              {group.items.map(
+                                ({ product, quantity, note, available, pending }) => (
+                                  <motion.li
+                                    key={product.id}
+                                    layout
+                                    initial={{ opacity: 0, x: 40 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{
+                                      opacity: 0,
+                                      x: 40,
+                                      height: 0,
+                                      paddingTop: 0,
+                                      paddingBottom: 0,
+                                    }}
+                                    transition={{ duration: 0.35 }}
+                                    className={cn(
+                                      "flex gap-3 overflow-hidden py-4 transition-opacity",
+                                      pending && "opacity-60",
+                                    )}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected(product.id)}
+                                      onChange={() => toggleSelect(product.id)}
+                                      aria-label={`Select ${product.title}`}
+                                      className="mt-1 size-4 shrink-0 accent-black"
+                                    />
+                                    <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-[#f2f2f2]">
+                                      <ProductImage
+                                        src={product.image}
+                                        alt={product.title}
+                                        id={product.id}
+                                        sizes="64px"
+                                        className="p-2"
+                                      />
+                                    </div>
+                                    <div className="flex min-w-0 flex-1 flex-col">
+                                      <Link
+                                        href={`/products/${product.slug}`}
+                                        onClick={close}
+                                        className="line-clamp-2 text-sm font-semibold hover:underline"
+                                      >
+                                        {product.title}
+                                      </Link>
+                                      <span className="mt-1 text-sm text-muted">
+                                        {formatPrice(product.price)}
+                                      </span>
+                                      {note && (
+                                        <span
+                                          className={
+                                            available === false
+                                              ? "text-xs text-coral"
+                                              : "text-xs text-muted"
+                                          }
+                                        >
+                                          {note}
+                                        </span>
+                                      )}
+                                      <div className="mt-auto flex items-center justify-between pt-2">
+                                        <QuantityStepper
+                                          value={quantity}
+                                          onChange={(q) => setQuantity(product.id, q)}
+                                          label={product.title}
+                                          disabled={pending}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => remove(product.id)}
+                                          disabled={pending}
+                                          className="text-xs text-muted underline hover:text-ink disabled:opacity-40"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </motion.li>
+                                ),
+                              )}
+                            </AnimatePresence>
+                          </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               )}
             </div>
 
             {items.length > 0 && (
               <div className="border-t border-line px-6 py-5">
                 <div className="flex justify-between text-base font-bold">
-                  <span>Subtotal</span>
+                  <span>Subtotal ({selectedCount})</span>
                   <motion.span
-                    key={subtotal}
+                    key={selectedSubtotal}
                     initial={{ opacity: 0.4, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    {formatPrice(subtotal)}
+                    {formatPrice(selectedSubtotal)}
                   </motion.span>
                 </div>
                 <p className="mt-1 text-xs text-muted">
-                  Taxes and shipping calculated at checkout.
+                  Orders are placed separately for each seller.
                 </p>
-                <Link
-                  href="/checkout"
-                  onClick={close}
-                  className="mt-4 grid h-12 w-full place-items-center rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
-                >
-                  Checkout
-                </Link>
+                {selectedCount > 0 ? (
+                  <Link
+                    href="/checkout"
+                    onClick={close}
+                    className="mt-4 grid h-12 w-full place-items-center rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
+                  >
+                    Checkout ({selectedCount})
+                  </Link>
+                ) : (
+                  <span
+                    aria-disabled="true"
+                    className="mt-4 grid h-12 w-full cursor-not-allowed place-items-center rounded-full bg-ink/40 text-sm font-semibold text-white"
+                  >
+                    Select items to check out
+                  </span>
+                )}
               </div>
             )}
           </motion.aside>

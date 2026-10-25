@@ -285,10 +285,10 @@ export const profileApi = {
 
 // ---------- Orders ----------
 export const orderApi = {
-  list: (token: string, page = 1, status?: OrderStatus | "") =>
+  list: (token: string, page = 1, status?: OrderStatus | "", limit?: number) =>
     request<ApiEnvelope<Order[]>>("/orders/", {
       token,
-      query: { page, status: status || undefined },
+      query: { page, status: status || undefined, limit },
     }).then(paged),
   get: (token: string, id: number) =>
     request<ApiEnvelope<Order>>(`/orders/${id}`, { token }).then(unwrap),
@@ -324,7 +324,7 @@ export const cartApi = {
   clear: (token: string) =>
     request<ApiEnvelope<ApiCart>>("/cart", { method: "DELETE", token }).then(unwrap),
   checkout: (token: string, payload: CheckoutPayload) =>
-    request<ApiEnvelope<Order>>("/cart/checkout", {
+    request<ApiEnvelope<Order[]>>("/cart/checkout", {
       method: "POST",
       token,
       body: payload,
@@ -348,6 +348,7 @@ function toCartProduct(p: ApiCartItem["product"]): Product {
     categoryId: null,
     subCategory: "",
     subCategoryId: null,
+    seller: null,
   };
 }
 
@@ -383,6 +384,7 @@ export function toProduct(p: ProductSummary | ProductDetail): Product {
     categoryId: detail?.sub_category?.category?.id ?? p.sub_category?.category_id ?? null,
     subCategory: p.sub_category?.name ?? "",
     subCategoryId: p.sub_category?.id ?? null,
+    seller: p.seller ?? null,
   };
 }
 
