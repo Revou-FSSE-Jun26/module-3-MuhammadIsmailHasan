@@ -47,10 +47,14 @@ export type RegisterValues = {
   confirm: string;
 };
 
+export function validateNewPassword(password: string, confirm: string): string | null {
+  if (password.length < 6) return "Password must be at least 6 characters.";
+  if (confirm !== password) return "Passwords do not match.";
+  return null;
+}
+
 export function validateRegister(values: RegisterValues): string | null {
   if (!values.username.trim()) return "Username is required.";
   if (!values.email.includes("@")) return "Enter a valid email address.";
-  if (values.password.length < 6) return "Password must be at least 6 characters.";
-  if (values.confirm !== values.password) return "Passwords do not match.";
-  return null;
+  return validateNewPassword(values.password, values.confirm);
 }

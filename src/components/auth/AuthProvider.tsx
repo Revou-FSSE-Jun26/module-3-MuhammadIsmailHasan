@@ -21,6 +21,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<User>;
   register: (payload: RegisterPayload) => Promise<User>;
   logout: () => void;
+  updateUser: (user: User) => void;
   authed: <T>(run: (token: string) => Promise<T>) => Promise<T>;
 };
 
@@ -96,6 +97,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionRef.current = session;
   }, [session]);
 
+  const updateUser = useCallback(
+    (user: User) => {
+      const current = sessionRef.current;
+      if (current) persist({ ...current, user });
+    },
+    [persist],
+  );
+
   const authed = useCallback(
     async <T,>(run: (token: string) => Promise<T>): Promise<T> => {
       const current = sessionRef.current;
@@ -127,9 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      updateUser,
       authed,
     }),
-    [session, status, login, register, logout, authed],
+    [session, status, login, register, logout, updateUser, authed],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
