@@ -134,7 +134,7 @@ function Checkout() {
           {showForm ? (
             <AddressForm
               onCancel={addresses.length ? () => setAdding(false) : undefined}
-              onCreated={(created) => {
+              onSaved={(created) => {
                 setChosen(created.id);
                 setAdding(false);
                 reload();

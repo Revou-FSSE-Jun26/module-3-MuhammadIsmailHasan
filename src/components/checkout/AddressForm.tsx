@@ -6,6 +6,7 @@ import { Field, FormError, buttonClass } from "@/components/auth/AuthShell";
 import { useToast } from "@/components/ui/ToastProvider";
 import { Spinner } from "@/components/ui/Spinner";
 import { ApiError, addressApi } from "@/lib/api";
+import { PHONE_HINT, isValidPhone, sanitizePhone } from "@/lib/validation";
 import type { Address } from "@/lib/types";
 
 const EMPTY = {
@@ -17,21 +18,39 @@ const EMPTY = {
   postal_code: "",
 };
 
+function fromAddress(address?: Address) {
+  if (!address) return EMPTY;
+  return {
+    label: address.label ?? "",
+    recipient_name: address.recipient_name,
+    phone: address.phone,
+    address_line: address.address_line,
+    city: address.city,
+    postal_code: address.postal_code ?? "",
+  };
+}
+
 export function AddressForm({
-  onCreated,
+  address,
+  onSaved,
   onCancel,
 }: {
-  onCreated: (address: Address) => void;
+  address?: Address;
+  onSaved: (address: Address) => void;
   onCancel?: () => void;
 }) {
   const { authed } = useAuth();
   const toast = useToast();
-  const [values, setValues] = useState(EMPTY);
+  const [values, setValues] = useState(() => fromAddress(address));
+  const [makeDefault, setMakeDefault] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const set = (key: keyof typeof EMPTY) => (e: ChangeEvent<HTMLInputElement>) =>
-    setValues((v) => ({ ...v, [key]: e.target.value }));
+    setValues((v) => ({
+      ...v,
+      [key]: key === "phone" ? sanitizePhone(e.target.value) : e.target.value,
+    }));
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -43,21 +62,25 @@ export function AddressForm({
     ) {
       return setError("Name, phone, address and city are required.");
     }
+    if (!isValidPhone(values.phone.trim())) return setError(PHONE_HINT);
     setError(null);
     setPending(true);
     try {
-      const created = await authed((token) =>
-        addressApi.create(token, {
-          label: values.label.trim() || undefined,
-          recipient_name: values.recipient_name.trim(),
-          phone: values.phone.trim(),
-          address_line: values.address_line.trim(),
-          city: values.city.trim(),
-          postal_code: values.postal_code.trim() || undefined,
-        }),
+      const payload = {
+        label: values.label.trim() || undefined,
+        recipient_name: values.recipient_name.trim(),
+        phone: values.phone.trim(),
+        address_line: values.address_line.trim(),
+        city: values.city.trim(),
+        postal_code: values.postal_code.trim() || undefined,
+      };
+      const saved = await authed((token) =>
+        address
+          ? addressApi.update(token, address.id, payload)
+          : addressApi.create(token, { ...payload, is_default: makeDefault || undefined }),
       );
-      toast.success("Address saved");
-      onCreated(created);
+      toast.success(address ? "Address updated" : "Address saved");
+      onSaved(saved);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the server. Try again.");
     } finally {
@@ -112,11 +135,22 @@ export function AddressForm({
           placeholder="Home, Office…"
         />
       </div>
+      {!address && (
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            checked={makeDefault}
+            onChange={(e) => setMakeDefault(e.target.checked)}
+            className="size-4 accent-ink"
+          />
+          Set as default address
+        </label>
+      )}
       <FormError message={error} />
       <div className="flex gap-3">
         <button type="submit" disabled={pending} className={buttonClass}>
           {pending && <Spinner className="mr-2 size-4 align-[-3px]" />}
-          {pending ? "Saving…" : "Save address"}
+          {pending ? "Saving…" : address ? "Save changes" : "Save address"}
         </button>
         {onCancel && (
           <button
