@@ -1,5 +1,5 @@
-import { RoleOverview } from "@/components/dashboard/RoleOverview";
+import { BuyerOverview } from "@/components/dashboard/BuyerOverview";
 
 export default function BuyerOverviewPage() {
-  return <RoleOverview role="buyer" />;
+  return <BuyerOverview />;
 }

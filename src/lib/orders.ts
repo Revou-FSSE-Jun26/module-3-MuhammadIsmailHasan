@@ -1,4 +1,4 @@
-import type { OrderStatus, Role } from "./types";
+import type { Order, OrderStatus, Role, Seller } from "./types";
 
 export const STATUS_META: Record<OrderStatus, { label: string; className: string }> = {
   waiting_for_payment: { label: "Waiting for payment", className: "bg-amber-100 text-amber-800" },
@@ -38,4 +38,22 @@ export const ACTION_LABEL: Record<OrderStatus, string> = {
 
 export function nextStatuses(role: Role, status: OrderStatus): OrderStatus[] {
   return TRANSITIONS[status].filter((next) => ROLE_TARGETS[role].includes(next));
+}
+
+export const IN_PROGRESS: OrderStatus[] = ["waiting_for_payment", "paid", "processing", "shipped"];
+
+export function orderSellers(order: Order): Seller[] {
+  const found = new Map<number, Seller>();
+  for (const item of order.items ?? []) {
+    if (item.seller) found.set(item.seller.id, item.seller);
+  }
+  if (found.size === 0 && order.seller) found.set(order.seller.id, order.seller);
+  return [...found.values()];
+}
+
+export function sellerLabel(order: Order): string {
+  const sellers = orderSellers(order);
+  if (sellers.length === 0) return "Unknown seller";
+  if (sellers.length === 1) return sellers[0].name;
+  return `${sellers.length} sellers`;
 }
