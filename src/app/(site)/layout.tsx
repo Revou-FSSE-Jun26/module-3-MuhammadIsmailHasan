@@ -1,4 +1,3 @@
-import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -20,7 +19,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Header categories={categories} />
       <main id="main">{children}</main>
       <Footer />
-      <CartDrawer />
     </>
   );
 }

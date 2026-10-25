@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { siteConfig } from "@/lib/site";
@@ -23,7 +24,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="overflow-x-clip font-sans">
         <AuthProvider>
           <ToastProvider>
-            <CartProvider>{children}</CartProvider>
+            <CartProvider>
+              {children}
+              <CartDrawer />
+            </CartProvider>
           </ToastProvider>
         </AuthProvider>
       </body>
