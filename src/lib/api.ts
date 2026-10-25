@@ -274,9 +274,9 @@ export function toProduct(p: ProductSummary | ProductDetail): Product {
     image: imageUrl(p.image) || gallery[0] || "",
     images: gallery.length ? gallery : p.image ? [imageUrl(p.image)] : [],
     category: detail?.sub_category?.category?.name ?? "",
-    categoryId: detail?.sub_category?.category?.id ?? null,
-    subCategory: detail?.sub_category?.name ?? "",
-    subCategoryId: detail?.sub_category?.id ?? null,
+    categoryId: detail?.sub_category?.category?.id ?? p.sub_category?.category_id ?? null,
+    subCategory: p.sub_category?.name ?? "",
+    subCategoryId: p.sub_category?.id ?? null,
   };
 }
 

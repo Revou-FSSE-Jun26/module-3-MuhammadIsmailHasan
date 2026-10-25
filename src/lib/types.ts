@@ -74,6 +74,7 @@ export type ProductSummary = {
   price: number;
   stock: number;
   image: string | null;
+  sub_category?: { id: number; name: string; category_id: number | null } | null;
 };
 
 /** Detail from GET /products/{id} or /products/slug/{slug} */
