@@ -7,6 +7,7 @@ import { LoadingBlock } from "@/components/ui/Spinner";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { imageUrl, orderApi } from "@/lib/api";
 import { formatDate, formatPrice } from "@/lib/format";
+import { itemName } from "@/lib/orders";
 import type { Role } from "@/lib/types";
 import { OrderStatusActions } from "./OrderStatusActions";
 import { StatusBadge } from "./StatusBadge";
@@ -48,7 +49,7 @@ export function OrderDetail({ id, placed, role }: { id: number; placed: boolean;
               <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-[#f2f2f2]">
                 <ProductImage
                   src={imageUrl(item.product?.image)}
-                  alt={item.product_name ?? "Product"}
+                  alt={itemName(item)}
                   id={item.product_id}
                   sizes="80px"
                   className="p-2"
@@ -60,10 +61,10 @@ export function OrderDetail({ id, placed, role }: { id: number; placed: boolean;
                     href={`/products/${item.product.slug}`}
                     className="line-clamp-2 font-semibold hover:underline"
                   >
-                    {item.product_name}
+                    {itemName(item)}
                   </Link>
                 ) : (
-                  <p className="line-clamp-2 font-semibold">{item.product_name}</p>
+                  <p className="line-clamp-2 font-semibold">{itemName(item)}</p>
                 )}
                 <p className="mt-1 text-muted">
                   {item.quantity} × {formatPrice(item.unit_price)}

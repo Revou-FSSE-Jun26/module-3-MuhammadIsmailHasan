@@ -3,15 +3,18 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Icon } from "@/components/ui/Icon";
 import { LoadingBlock } from "@/components/ui/Spinner";
 import { ProductImage } from "@/components/product/ProductImage";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { imageUrl, orderApi } from "@/lib/api";
 import { formatDate, formatPrice } from "@/lib/format";
+import { itemName, sellerItems } from "@/lib/orders";
 import type { Order, OrderItem, Role } from "@/lib/types";
 import { OrderStatusActions } from "./OrderStatusActions";
 import { StatusBadge } from "./StatusBadge";
+import { StatusTimeline } from "./StatusTimeline";
 
 type SellerGroup = { key: string; name: string; items: OrderItem[] };
 
@@ -91,8 +94,17 @@ function ModalBody({
   onChanged: () => void;
 }) {
   const { state, reload } = useAuthedQuery(`order-modal-${id}`, (token) => orderApi.get(token, id));
+  const { user } = useAuth();
   const order = state.status === "ready" ? state.data : null;
-  const groups = useMemo(() => (order ? groupBySeller(order) : []), [order]);
+  const viewerSellerId = role === "seller" ? user?.id : undefined;
+  const visible = useMemo(() => {
+    if (!order || viewerSellerId === undefined) return order;
+    return { ...order, items: sellerItems(order, viewerSellerId) };
+  }, [order, viewerSellerId]);
+  const groups = useMemo(() => (visible ? groupBySeller(visible) : []), [visible]);
+  const hiddenItems =
+    order && visible ? (order.items?.length ?? 0) - (visible.items?.length ?? 0) : 0;
+  const yourTotal = visible?.items?.reduce((n, i) => n + i.sub_total, 0) ?? 0;
 
   return (
     <>
@@ -141,7 +153,7 @@ function ModalBody({
                         <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-[#f2f2f2]">
                           <ProductImage
                             src={imageUrl(item.product?.image)}
-                            alt={item.product_name ?? "Product"}
+                            alt={itemName(item)}
                             id={item.product_id}
                             sizes="64px"
                             className="p-1"
@@ -153,10 +165,10 @@ function ModalBody({
                               href={`/products/${item.product.slug}`}
                               className="line-clamp-2 font-semibold hover:underline"
                             >
-                              {item.product_name}
+                              {itemName(item)}
                             </Link>
                           ) : (
-                            <p className="line-clamp-2 font-semibold">{item.product_name}</p>
+                            <p className="line-clamp-2 font-semibold">{itemName(item)}</p>
                           )}
                           <p className="mt-1 text-muted">
                             {item.quantity} × {formatPrice(item.unit_price)}
@@ -185,10 +197,24 @@ function ModalBody({
                 )}
               </div>
               <div className="flex items-center justify-between rounded-2xl bg-[#f6f6f6] p-4 font-bold">
-                <span>Total</span>
-                <span className="text-lg">{formatPrice(order.total_amount)}</span>
+                <span>{viewerSellerId !== undefined ? "Your sales" : "Total"}</span>
+                <span className="text-lg">
+                  {formatPrice(viewerSellerId !== undefined ? yourTotal : order.total_amount)}
+                </span>
               </div>
             </div>
+
+            {hiddenItems > 0 && (
+              <p className="text-xs text-muted">
+                This order also contains {hiddenItems} item(s) from other sellers. They are not
+                shown here.
+              </p>
+            )}
+
+            <section className="rounded-2xl border border-line p-5">
+              <h3 className="mb-4 text-sm font-bold">Status history</h3>
+              <StatusTimeline order={order} />
+            </section>
 
             <OrderStatusActions
               order={order}

@@ -2,14 +2,25 @@ import { ProductImage } from "@/components/product/ProductImage";
 import { Icon } from "@/components/ui/Icon";
 import { imageUrl } from "@/lib/api";
 import { formatDate, formatPrice } from "@/lib/format";
-import { orderSellers, sellerLabel } from "@/lib/orders";
+import { itemName, orderSellers, sellerItems, sellerLabel, sellerRevenue } from "@/lib/orders";
 import type { Order } from "@/lib/types";
 import { StatusBadge } from "./StatusBadge";
 
 const MAX_THUMBS = 4;
 
-export function OrderSummaryCard({ order, onOpen }: { order: Order; onOpen: () => void }) {
-  const items = order.items ?? [];
+export function OrderSummaryCard({
+  order,
+  onOpen,
+  viewerSellerId,
+}: {
+  order: Order;
+  onOpen: () => void;
+  viewerSellerId?: number;
+}) {
+  const own = viewerSellerId !== undefined;
+  const items = own ? sellerItems(order, viewerSellerId) : (order.items ?? []);
+  const quantity = own ? items.reduce((n, i) => n + i.quantity, 0) : (order.total_quantity ?? 0);
+  const amount = own ? sellerRevenue(order, viewerSellerId) : order.total_amount;
   const shown = items.slice(0, MAX_THUMBS);
   const extra = items.length - shown.length;
   const sellers = orderSellers(order);
@@ -32,11 +43,15 @@ export function OrderSummaryCard({ order, onOpen }: { order: Order; onOpen: () =
 
       <div className="mt-4 flex items-center gap-3">
         <span className="grid size-9 shrink-0 place-items-center rounded-full bg-ink text-sm font-bold text-white">
-          {sellers.length > 1 ? sellers.length : label.charAt(0).toUpperCase()}
+          {own ? items.length : sellers.length > 1 ? sellers.length : label.charAt(0).toUpperCase()}
         </span>
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wider text-muted">Sold by</p>
-          <p className="truncate text-sm font-semibold">{label}</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted">
+            {own ? "Your products" : "Sold by"}
+          </p>
+          <p className="truncate text-sm font-semibold">
+            {own ? items.map(itemName).join(", ") : label}
+          </p>
         </div>
       </div>
 
@@ -49,7 +64,7 @@ export function OrderSummaryCard({ order, onOpen }: { order: Order; onOpen: () =
             <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-110">
               <ProductImage
                 src={imageUrl(item.product?.image)}
-                alt={item.product_name ?? "Product"}
+                alt={itemName(item)}
                 id={item.product_id}
                 sizes="80px"
                 className="p-1.5"
@@ -67,8 +82,8 @@ export function OrderSummaryCard({ order, onOpen }: { order: Order; onOpen: () =
       <div className="mt-auto pt-5">
         <div className="flex items-end justify-between gap-4 border-t border-line pt-4">
           <div>
-            <p className="text-xs text-muted">{order.total_quantity ?? 0} item(s)</p>
-            <p className="text-lg font-bold">{formatPrice(order.total_amount)}</p>
+            <p className="text-xs text-muted">{quantity} item(s)</p>
+            <p className="text-lg font-bold">{formatPrice(amount)}</p>
           </div>
           <span className="flex items-center gap-1.5 text-xs font-semibold text-muted transition group-hover:text-ink">
             View details

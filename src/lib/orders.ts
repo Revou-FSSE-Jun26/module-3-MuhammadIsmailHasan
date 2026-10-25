@@ -1,4 +1,4 @@
-import type { Order, OrderStatus, Role, Seller } from "./types";
+import type { Order, OrderItem, OrderStatus, Role, Seller } from "./types";
 
 export const STATUS_META: Record<OrderStatus, { label: string; className: string }> = {
   waiting_for_payment: { label: "Waiting for payment", className: "bg-amber-100 text-amber-800" },
@@ -65,3 +65,23 @@ export const STATUS_FILTER_OPTIONS: { value: OrderStatus | ""; label: string }[]
     label: STATUS_META[s].label,
   })),
 ];
+
+export const NEEDS_SHIPPING: OrderStatus[] = ["paid", "processing"];
+
+export const SALE_STATUSES: OrderStatus[] = ["paid", "processing", "shipped", "delivered"];
+
+export function isMine(item: OrderItem, order: Order, sellerId: number): boolean {
+  return (item.seller ?? order.seller)?.id === sellerId;
+}
+
+export function sellerItems(order: Order, sellerId: number): OrderItem[] {
+  return (order.items ?? []).filter((item) => isMine(item, order, sellerId));
+}
+
+export function sellerRevenue(order: Order, sellerId: number): number {
+  return sellerItems(order, sellerId).reduce((n, item) => n + item.sub_total, 0);
+}
+
+export function itemName(item: OrderItem): string {
+  return item.product?.name ?? item.product_name ?? "Product";
+}
