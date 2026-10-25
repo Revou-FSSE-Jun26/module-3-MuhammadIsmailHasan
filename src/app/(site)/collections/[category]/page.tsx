@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product/ProductCard";
 import { RevealGroup, RevealItem, SplitText } from "@/components/ui/Reveal";
 import { SortSelect } from "@/components/product/SortSelect";
@@ -32,14 +33,18 @@ export default async function CollectionPage({
 
   const categories = (await getCategories()).filter((c) => c.is_active);
   const current = categories.find((c) => c.id === categoryId);
+  if (raw !== "all" && !current) notFound();
   const subs = current
     ? (current.sub_categories ?? [])
     : categories.flatMap((c) => c.sub_categories ?? []);
   const subIds = resolveSubCategoryIds(categories, categoryId, subId);
   const order = sortToQuery(sort);
 
-  const result =
-    subIds.length > 1
+  const emptyCategory = current !== undefined && subIds.length === 0;
+
+  const result = emptyCategory
+    ? { items: [], pagination: null, total: 0 }
+    : subIds.length > 1
       ? await Promise.all(
           subIds.map((id) =>
             getProducts({ name: q, sub_category_id: id, limit: PER_SUB, ...order }),
