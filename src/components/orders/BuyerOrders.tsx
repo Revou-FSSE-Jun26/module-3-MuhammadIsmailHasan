@@ -57,7 +57,7 @@ export function BuyerOrders({ placed, openId }: { placed: number; openId: number
             </div>
           ) : (
             <>
-              <ul className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+              <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
                 {items.map((order) => (
                   <li key={order.id}>
                     <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />

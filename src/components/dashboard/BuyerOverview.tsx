@@ -58,7 +58,7 @@ export function BuyerOverview() {
       <QueryView state={orders.state} reload={orders.reload}>
         {(summary) => (
           <>
-            <dl className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <dl className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Stat label="Total orders" value={String(summary.total)} />
               <Stat
                 label="In progress"
@@ -73,7 +73,7 @@ export function BuyerOverview() {
               />
             </dl>
 
-            <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
               <section>
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-lg font-bold">Recent orders</h2>
@@ -92,7 +92,7 @@ export function BuyerOverview() {
                     </Link>
                   </div>
                 ) : (
-                  <ul className="grid gap-4 md:grid-cols-2">
+                  <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {summary.recent.map((order) => (
                       <li key={order.id}>
                         <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />

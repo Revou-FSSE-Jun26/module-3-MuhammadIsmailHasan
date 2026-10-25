@@ -85,7 +85,7 @@ function Checkout() {
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_380px]">
+    <div className="mx-auto grid grid-cols-1 max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <section>
         <h1 className="text-3xl font-extrabold tracking-tight">Checkout</h1>
         <h2 className="mt-8 text-lg font-bold">Shipping address</h2>

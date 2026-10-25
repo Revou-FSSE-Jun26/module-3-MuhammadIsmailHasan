@@ -7,7 +7,7 @@ import { BackToTop } from "./BackToTop";
 export function Footer() {
   return (
     <footer id="contact" className="mt-24 scroll-mt-32 border-t border-line bg-[#fafafa]">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid grid-cols-1 max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
         <Reveal className="lg:col-span-2">
           <Link href="/" className="text-2xl font-extrabold">
             {siteConfig.name}

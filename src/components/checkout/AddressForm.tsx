@@ -94,7 +94,7 @@ export function AddressForm({
       className="space-y-4 rounded-2xl border border-line bg-white p-5"
       noValidate
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field
           label="Recipient name"
           value={values.recipient_name}
@@ -115,7 +115,7 @@ export function AddressForm({
         onChange={set("address_line")}
         autoComplete="street-address"
       />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Field
           label="City"
           value={values.city}

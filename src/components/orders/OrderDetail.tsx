@@ -42,7 +42,7 @@ export function OrderDetail({ id, placed, role }: { id: number; placed: boolean;
         action={<StatusBadge status={order.status} />}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <ul className="divide-y divide-line rounded-2xl border border-line bg-white">
           {(order.items ?? []).map((item) => (
             <li key={item.id} className="flex gap-4 p-5">

@@ -25,7 +25,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f6f6f7] lg:grid lg:grid-cols-[260px_1fr]">
+    <div className="min-h-screen bg-[#f6f6f7] lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
       <aside className="sticky top-0 hidden h-screen flex-col border-r border-line bg-white p-5 lg:flex">
         <Link href={user ? ROLE_HOME[user.role] : "/"} className="text-xl font-extrabold">
           {siteConfig.name}
@@ -71,17 +71,17 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="min-w-0">
+      <div className="min-w-0 overflow-x-clip">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line bg-white/85 px-4 backdrop-blur sm:px-8">
           <Link href="/" className="text-lg font-extrabold lg:hidden">
             {siteConfig.name}
           </Link>
           <p className="hidden text-sm text-muted lg:block">Dashboard</p>
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             {user && (
-              <div className="text-right text-xs leading-tight">
-                <p className="font-semibold">{user.username}</p>
-                <p className="text-muted">{user.email}</p>
+              <div className="min-w-0 text-right text-xs leading-tight">
+                <p className="max-w-32 truncate font-semibold sm:max-w-none">{user.username}</p>
+                <p className="hidden text-muted sm:block">{user.email}</p>
               </div>
             )}
             <button

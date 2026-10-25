@@ -26,7 +26,7 @@ export function RoleOverview({ role }: { role: Role }) {
         initial="hidden"
         animate="show"
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
       >
         {cards.map((card) => (
           <motion.li

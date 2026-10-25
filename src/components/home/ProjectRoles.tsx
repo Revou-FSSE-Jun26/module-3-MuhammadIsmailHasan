@@ -22,7 +22,7 @@ export function ProjectRoles() {
           permissions.
         </p>
       </div>
-      <RevealGroup className="mt-8 grid gap-6 md:grid-cols-3">
+      <RevealGroup className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         {siteConfig.roles.map((role, i) => (
           <RevealItem key={role.title}>
             <div

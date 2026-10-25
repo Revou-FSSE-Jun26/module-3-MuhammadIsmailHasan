@@ -34,7 +34,7 @@ export function Stats({ role }: { role: Role }) {
   }
 
   return (
-    <dl className="mb-8 grid gap-4 sm:grid-cols-3">
+    <dl className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
       {state.data.map((stat) => (
         <div key={stat.label} className="rounded-2xl border border-line bg-white p-6">
           <dt className="text-sm text-muted">{stat.label}</dt>

@@ -80,7 +80,7 @@ export function ProductForm({
       noValidate
     >
       <Field label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field
           label="Price (IDR)"
           type="number"
@@ -96,7 +96,7 @@ export function ProductForm({
           onChange={(e) => setStock(e.target.value)}
         />
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div className="text-sm font-semibold">
           <span className="mb-1.5 block">Category</span>
           <Select

@@ -4,7 +4,7 @@ export default function Loading() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6" aria-busy="true">
       <div className="h-3 w-48 animate-pulse rounded-full bg-[#f2f2f2]" />
-      <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
           <div className="relative aspect-square animate-pulse rounded-3xl bg-[#f2f2f2]">
             <span className="absolute inset-0 grid place-items-center text-muted">

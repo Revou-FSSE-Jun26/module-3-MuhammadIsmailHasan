@@ -221,7 +221,7 @@ export function Header({ categories }: { categories: Category[] }) {
               onClick={() => setMenuOpen(false)}
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-50 flex w-[86%] max-w-sm flex-col bg-white p-6"
+              className="fixed inset-y-0 left-0 z-50 flex w-[86%] max-w-sm flex-col overflow-y-auto overscroll-contain bg-white p-6"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}

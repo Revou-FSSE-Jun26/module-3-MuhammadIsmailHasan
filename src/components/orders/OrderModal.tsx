@@ -182,7 +182,7 @@ function ModalBody({
               );
             })}
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-line p-4 text-sm">
                 <h3 className="font-bold">Shipping to</h3>
                 <p className="mt-2 font-semibold">{order.shipping_recipient_name}</p>

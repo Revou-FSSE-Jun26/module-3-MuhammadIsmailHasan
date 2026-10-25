@@ -46,8 +46,8 @@ export function ProductDetail({ product }: { product: Product }) {
   }
 
   return (
-    <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-16">
-      <div className="flex flex-col gap-4">
+    <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="flex min-w-0 flex-col gap-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -139,7 +139,7 @@ export function ProductDetail({ product }: { product: Product }) {
             },
           },
         }}
-        className="flex flex-col"
+        className="flex min-w-0 flex-col"
       >
         {[
           <p key="cat" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">

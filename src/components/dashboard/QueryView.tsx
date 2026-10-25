@@ -59,12 +59,12 @@ export function Pager({
         <b className="text-ink">{total}</b>
       </p>
       {totalPages > 1 && (
-        <nav aria-label="Pagination" className="flex items-center gap-1">
+        <nav aria-label="Pagination" className="flex flex-wrap items-center justify-center gap-1">
           <button
             type="button"
             disabled={page <= 1}
             onClick={() => onChange(page - 1)}
-            className="grid h-10 place-items-center rounded-full border border-line bg-white px-4 font-medium transition hover:border-ink disabled:opacity-40 disabled:hover:border-line"
+            className="grid h-10 place-items-center rounded-full border border-line bg-white px-3 font-medium sm:px-4 transition hover:border-ink disabled:opacity-40 disabled:hover:border-line"
           >
             Previous
           </button>
@@ -94,7 +94,7 @@ export function Pager({
             type="button"
             disabled={page >= totalPages}
             onClick={() => onChange(page + 1)}
-            className="grid h-10 place-items-center rounded-full border border-line bg-white px-4 font-medium transition hover:border-ink disabled:opacity-40 disabled:hover:border-line"
+            className="grid h-10 place-items-center rounded-full border border-line bg-white px-3 font-medium sm:px-4 transition hover:border-ink disabled:opacity-40 disabled:hover:border-line"
           >
             Next
           </button>

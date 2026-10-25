@@ -95,7 +95,7 @@ function Overview({ username }: { username: string }) {
       <QueryView state={state} reload={reload}>
         {(s) => (
           <>
-            <dl className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <dl className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Stat
                 label="Total sales"
                 value={formatPrice(s.sales)}
@@ -119,7 +119,7 @@ function Overview({ username }: { username: string }) {
               />
             </dl>
 
-            <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
               <div className="space-y-8">
                 <section>
                   <div className="mb-3 flex items-center justify-between">
@@ -136,7 +136,7 @@ function Overview({ username }: { username: string }) {
                       Nothing waiting to be shipped.
                     </div>
                   ) : (
-                    <ul className="grid gap-4 md:grid-cols-2">
+                    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {s.toShip.slice(0, 4).map((order) => (
                         <li key={order.id}>
                           <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />
@@ -161,7 +161,7 @@ function Overview({ username }: { username: string }) {
                       No orders yet.
                     </div>
                   ) : (
-                    <ul className="grid gap-4 md:grid-cols-2">
+                    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {s.recent.map((order) => (
                         <li key={order.id}>
                           <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />

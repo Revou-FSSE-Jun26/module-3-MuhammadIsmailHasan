@@ -8,7 +8,7 @@ import { siteConfig } from "@/lib/site";
 export function Features() {
   return (
     <section className="border-b border-line">
-      <RevealGroup className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
+      <RevealGroup className="mx-auto grid grid-cols-1 max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         {siteConfig.features.map((f) => (
           <RevealItem key={f.title}>
             <motion.div className="group flex items-start gap-4" whileHover="hover">
