@@ -165,6 +165,20 @@ export type AddressPayload = {
   is_default?: boolean;
 };
 
+export type Profile = {
+  id: number;
+  user_id: number;
+  full_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+};
+
+export type ProfilePayload = {
+  full_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+};
+
 export type ProductPayload = {
   name: string;
   price: number;

@@ -1,6 +1,8 @@
 import type {
   Address,
   AddressPayload,
+  Profile,
+  ProfilePayload,
   ApiEnvelope,
   Category,
   CategoryPayload,
@@ -118,6 +120,18 @@ export const authApi = {
   register: (payload: RegisterPayload) =>
     request<ApiEnvelope<User>>("/users/", { method: "POST", body: payload }).then(unwrap),
   me: (token: string) => request<ApiEnvelope<User>>("/users/me", { token }).then(unwrap),
+  changeEmail: (token: string, email: string, currentPassword: string) =>
+    request<ApiEnvelope<User>>("/users/me/email", {
+      method: "PUT",
+      token,
+      body: { email, current_password: currentPassword },
+    }).then(unwrap),
+  changePassword: (token: string, currentPassword: string, newPassword: string) =>
+    request<ApiEnvelope<never>>("/users/me/password", {
+      method: "PUT",
+      token,
+      body: { current_password: currentPassword, new_password: newPassword },
+    }),
 };
 
 // ---------- Catalog ----------
@@ -239,6 +253,30 @@ export const addressApi = {
     request<ApiEnvelope<Address>>("/addresses", { method: "POST", token, body: payload }).then(
       unwrap,
     ),
+  update: (token: string, id: number, payload: Partial<AddressPayload>) =>
+    request<ApiEnvelope<Address>>(`/addresses/${id}`, {
+      method: "PUT",
+      token,
+      body: payload,
+    }).then(unwrap),
+  remove: (token: string, id: number) =>
+    request<ApiEnvelope<never>>(`/addresses/${id}`, { method: "DELETE", token }),
+  setDefault: (token: string, id: number) =>
+    request<ApiEnvelope<Address>>(`/addresses/${id}/default`, { method: "PUT", token }).then(
+      unwrap,
+    ),
+};
+
+export const profileApi = {
+  get: (token: string) =>
+    request<ApiEnvelope<Profile>>("/profile", { token })
+      .then(unwrap)
+      .catch((error) => {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      }),
+  save: (token: string, payload: ProfilePayload) =>
+    request<ApiEnvelope<Profile>>("/profile", { method: "PUT", token, body: payload }).then(unwrap),
 };
 
 // ---------- Orders ----------
