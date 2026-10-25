@@ -6,6 +6,14 @@ test("dashboard redirects guests to login and keeps the target", async ({ page }
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
 });
 
+test("login page offers demo accounts that fill the form", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.getByText("Try a demo account")).toBeVisible();
+  await page.getByRole("button", { name: /buyer/i }).click();
+  await expect(page.getByLabel("Email")).toHaveValue("jane@example.com");
+  await expect(page.getByLabel("Password")).toHaveValue("password123");
+});
+
 test("checkout redirects guests to login", async ({ page }) => {
   await page.goto("/checkout");
   await expect(page).toHaveURL(/\/login/);

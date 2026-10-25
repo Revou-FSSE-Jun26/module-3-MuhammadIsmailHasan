@@ -22,6 +22,18 @@ test("product card opens the product detail page", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText(title ?? "");
 });
 
+test("product cards show the seller line", async ({ page }) => {
+  await page.goto("/collections/all");
+  await expect(page.getByText(/^by /).first()).toBeVisible();
+});
+
+test("sort dropdown changes the sort in the URL", async ({ page }) => {
+  await page.goto("/collections/all");
+  await page.getByRole("combobox", { name: "Sort by" }).click();
+  await page.getByRole("option", { name: "Price: low to high" }).click();
+  await expect(page).toHaveURL(/sort=price-asc/);
+});
+
 test("unknown product slug shows the not found page", async ({ page }) => {
   const response = await page.goto("/products/this-product-does-not-exist-123");
   expect(response?.status()).toBe(404);
