@@ -141,7 +141,7 @@ export function Header({ categories }: { categories: Category[] }) {
               </button>
             )}
             <Link
-              href="/collections/all"
+              href="/wishlist"
               className="relative hidden size-11 place-items-center rounded-full hover:bg-[#f3f3f3] sm:grid"
               aria-label={`Wishlist, ${wishlist.length} items`}
             >
@@ -256,7 +256,12 @@ export function Header({ categories }: { categories: Category[] }) {
                   show: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
                 }}
               >
-                {[...mainNav, ...accountNav, ...siteConfig.secondaryNav].map((item) => (
+                {[
+                  ...mainNav,
+                  { label: "Wishlist", href: "/wishlist" },
+                  ...accountNav,
+                  ...siteConfig.secondaryNav,
+                ].map((item) => (
                   <motion.li
                     key={item.label}
                     variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
