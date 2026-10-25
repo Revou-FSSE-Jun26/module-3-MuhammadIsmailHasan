@@ -44,7 +44,7 @@ export function ProductImage({
       fill
       sizes={sizes}
       priority={priority}
-      className={cn("object-contain p-6 mix-blend-multiply", className)}
+      className={cn("object-contain mix-blend-multiply", className ?? "p-6")}
     />
   );
 }
