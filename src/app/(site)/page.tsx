@@ -8,17 +8,19 @@ import { PromoMarquee } from "@/components/home/PromoMarquee";
 import { PopularPicks } from "@/components/home/PopularPicks";
 import { ProjectRoles } from "@/components/home/ProjectRoles";
 import { getCategories, getProducts } from "@/lib/api";
-import { pickCollections, pickDiverse } from "@/lib/catalog";
+import { inStock, pickCollections, pickDiverse } from "@/lib/catalog";
 
 export default async function HomePage() {
   const [featured, latest, categories] = await Promise.all([
-    getProducts({ limit: 11, sort_by: "best_selling", order: "desc" }),
+    getProducts({ limit: 40, sort_by: "best_selling", order: "desc" }),
     getProducts({ limit: 30, sort_by: "created_at", order: "desc" }),
     getCategories(),
   ]);
-  const topSellers = featured.items.slice(0, 5);
-  const popular = featured.items.slice(5, 11);
-  const newest = latest.items.slice(0, 5);
+  const sellers = inStock(featured.items);
+  const fresh = inStock(latest.items);
+  const topSellers = sellers.slice(0, 5);
+  const popular = sellers.slice(5, 11);
+  const newest = fresh.slice(0, 5);
 
   return (
     <>
@@ -39,7 +41,7 @@ export default async function HomePage() {
         products={newest}
         link={{ href: "/collections/all", label: "Shop all" }}
       />
-      <Lookbook products={pickDiverse(latest.items, 3)} />
+      <Lookbook products={pickDiverse(fresh, 3)} />
       <PromoMarquee />
       <Features />
       <ProjectRoles />

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/home/ProductGrid";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { getProduct, getProducts } from "@/lib/api";
+import { inStock } from "@/lib/catalog";
 import { categoryHref } from "@/lib/format";
 
 type Params = Promise<{ slug: string }>;
@@ -23,7 +24,7 @@ export default async function ProductPage({ params }: { params: Params }) {
   if (!product) notFound();
 
   const related = product.subCategoryId
-    ? (await getProducts({ sub_category_id: product.subCategoryId, limit: 6 })).items
+    ? inStock((await getProducts({ sub_category_id: product.subCategoryId, limit: 20 })).items)
         .filter((p) => p.slug !== product.slug)
         .slice(0, 5)
     : [];

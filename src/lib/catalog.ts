@@ -21,6 +21,10 @@ export function resolveSubCategoryIds(
   return categories.find((c) => c.id === categoryId)?.sub_categories?.map((s) => s.id) ?? [];
 }
 
+export function inStock(products: Product[]): Product[] {
+  return products.filter((p) => p.stock > 0);
+}
+
 export function pickDiverse(products: Product[], count: number): Product[] {
   const groups = new Map<string, Product[]>();
   for (const p of products) {
