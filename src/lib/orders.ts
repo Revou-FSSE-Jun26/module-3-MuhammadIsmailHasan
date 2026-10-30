@@ -22,7 +22,7 @@ const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 
 const ROLE_TARGETS: Record<Role, OrderStatus[]> = {
   buyer: ["returned", "cancelled"],
-  seller: ["paid", "processing", "shipped", "delivered", "cancelled"],
+  seller: ["processing", "shipped", "delivered", "cancelled"],
   admin: ["paid", "processing", "shipped", "delivered", "returned", "cancelled"],
 };
 
