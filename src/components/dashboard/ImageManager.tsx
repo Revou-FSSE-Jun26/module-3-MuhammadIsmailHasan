@@ -5,6 +5,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ProductImage } from "@/components/product/ProductImage";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
+import { Spinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError, imageUrl, productImageApi } from "@/lib/api";
 import { QueryView } from "./QueryView";
@@ -17,6 +18,7 @@ export function ImageManager({ productId }: { productId: number }) {
   );
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   async function run(action: (token: string) => Promise<unknown>, done: string) {
     setBusy(true);
@@ -34,7 +36,11 @@ export function ImageManager({ productId }: { productId: number }) {
   function onFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (file) run((token) => productImageApi.upload(token, productId, file), "Image uploaded");
+    if (!file) return;
+    setUploading(true);
+    run((token) => productImageApi.upload(token, productId, file), "Image uploaded").finally(() =>
+      setUploading(false),
+    );
   }
 
   function onAddUrl(e: FormEvent) {
@@ -58,8 +64,14 @@ export function ImageManager({ productId }: { productId: number }) {
       <p className="mt-1 text-sm text-muted">The first image is the product cover.</p>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <label className="cursor-pointer rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-black">
-          Upload image
+        <label
+          aria-busy={uploading}
+          className={`inline-flex items-center rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white ${
+            busy ? "pointer-events-none opacity-60" : "cursor-pointer hover:bg-black"
+          }`}
+        >
+          {uploading && <Spinner className="mr-2 size-4" />}
+          {uploading ? "Uploading…" : "Upload image"}
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp"
@@ -90,7 +102,7 @@ export function ImageManager({ productId }: { productId: number }) {
           {(images) => {
             const sorted = [...images].sort((a, b) => a.order - b.order);
             const ids = sorted.map((i) => i.id);
-            return sorted.length === 0 ? (
+            return sorted.length === 0 && !uploading ? (
               <p className="text-sm text-muted">No images yet.</p>
             ) : (
               <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -157,6 +169,17 @@ export function ImageManager({ productId }: { productId: number }) {
                     </motion.li>
                   ))}
                 </AnimatePresence>
+                {uploading && (
+                  <li
+                    role="status"
+                    className="grid aspect-square place-items-center rounded-xl border border-dashed border-line text-xs font-semibold text-muted"
+                  >
+                    <span className="flex flex-col items-center gap-2">
+                      <Spinner className="size-6 text-ink" />
+                      Uploading…
+                    </span>
+                  </li>
+                )}
               </ul>
             );
           }}
