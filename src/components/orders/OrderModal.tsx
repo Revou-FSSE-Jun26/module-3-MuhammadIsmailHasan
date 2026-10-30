@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { PayButton } from "@/components/payment/PayButton";
 import { Icon } from "@/components/ui/Icon";
 import { LoadingBlock } from "@/components/ui/Spinner";
 import { ProductImage } from "@/components/product/ProductImage";
@@ -33,11 +34,13 @@ function groupBySeller(order: Order): SellerGroup[] {
 export function OrderModal({
   id,
   role,
+  autoPay = false,
   onClose,
   onChanged,
 }: {
   id: number | null;
   role: Role;
+  autoPay?: boolean;
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -74,7 +77,13 @@ export function OrderModal({
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModalBody id={id} role={role} onClose={onClose} onChanged={onChanged} />
+            <ModalBody
+              id={id}
+              role={role}
+              autoPay={autoPay}
+              onClose={onClose}
+              onChanged={onChanged}
+            />
           </motion.div>
         </motion.div>
       )}
@@ -85,11 +94,13 @@ export function OrderModal({
 function ModalBody({
   id,
   role,
+  autoPay,
   onClose,
   onChanged,
 }: {
   id: number;
   role: Role;
+  autoPay: boolean;
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -215,6 +226,18 @@ function ModalBody({
               <h3 className="mb-4 text-sm font-bold">Status history</h3>
               <StatusTimeline order={order} />
             </section>
+
+            {role === "buyer" && order.status === "waiting_for_payment" && (
+              <PayButton
+                order={order}
+                autoStart={autoPay}
+                onChanged={() => {
+                  reload();
+                  onChanged();
+                }}
+                className="w-full"
+              />
+            )}
 
             <OrderStatusActions
               order={order}

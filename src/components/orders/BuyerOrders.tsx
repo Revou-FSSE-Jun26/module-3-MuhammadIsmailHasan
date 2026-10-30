@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { PayButton } from "@/components/payment/PayButton";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Pager, QueryView } from "@/components/dashboard/QueryView";
 import { Select } from "@/components/ui/Select";
@@ -14,10 +15,19 @@ import { OrderSummaryCard } from "./OrderSummaryCard";
 
 const PAGE_SIZE = 12;
 
-export function BuyerOrders({ placed, openId }: { placed: number; openId: number | null }) {
+export function BuyerOrders({
+  placed,
+  openId,
+  autoPay,
+}: {
+  placed: number;
+  openId: number | null;
+  autoPay: boolean;
+}) {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [selected, setSelected] = useState<number | null>(openId);
+  const [autoPayId, setAutoPayId] = useState<number | null>(autoPay ? openId : null);
   const { state, reload } = useAuthedQuery(`orders-buyer-${page}-${status}`, (token) =>
     orderApi.list(token, page, status, PAGE_SIZE),
   );
@@ -26,8 +36,9 @@ export function BuyerOrders({ placed, openId }: { placed: number; openId: number
     <>
       {placed > 0 && (
         <p className="mb-6 rounded-2xl bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-800">
-          {placed > 1 ? `${placed} orders placed, one for each seller.` : "Order placed."} They are
-          waiting for payment — online payment is not enabled in this demo yet.
+          {placed > 1
+            ? `${placed} orders placed, one for each seller. Pay each one with its Pay now button.`
+            : "Order placed. Complete the payment in the Midtrans window, or use Pay now later."}
         </p>
       )}
       <PageHeader
@@ -59,8 +70,13 @@ export function BuyerOrders({ placed, openId }: { placed: number; openId: number
             <>
               <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
                 {items.map((order) => (
-                  <li key={order.id}>
-                    <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />
+                  <li key={order.id} className="flex flex-col gap-2">
+                    <div className="flex-1">
+                      <OrderSummaryCard order={order} onOpen={() => setSelected(order.id)} />
+                    </div>
+                    {order.status === "waiting_for_payment" && (
+                      <PayButton order={order} onChanged={reload} className="w-full" />
+                    )}
                   </li>
                 ))}
               </ul>
@@ -70,7 +86,16 @@ export function BuyerOrders({ placed, openId }: { placed: number; openId: number
         }
       </QueryView>
 
-      <OrderModal id={selected} role="buyer" onClose={() => setSelected(null)} onChanged={reload} />
+      <OrderModal
+        id={selected}
+        role="buyer"
+        autoPay={selected !== null && selected === autoPayId}
+        onClose={() => {
+          setSelected(null);
+          setAutoPayId(null);
+        }}
+        onChanged={reload}
+      />
     </>
   );
 }

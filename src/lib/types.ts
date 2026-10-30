@@ -160,6 +160,24 @@ export type Order = {
   status_history?: StatusHistoryEntry[];
 };
 
+export type PaymentStatus = "pending" | "paid" | "expired" | "failed" | "refunded";
+
+export type Payment = {
+  id: number;
+  order_id: number;
+  payment_reference: string;
+  amount: number;
+  status: PaymentStatus;
+  payment_method: string | null;
+  transaction_time: string | null;
+  settlement_time: string | null;
+  expires_at: string;
+  created_at: string;
+  updated_at: string | null;
+};
+
+export type SnapPayment = Payment & { snap_token: string; redirect_url: string };
+
 export type Address = {
   id: number;
   label: string | null;

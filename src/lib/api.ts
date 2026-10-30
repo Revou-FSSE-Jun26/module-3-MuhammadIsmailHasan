@@ -22,6 +22,7 @@ import type {
   ProductQuery,
   ProductSummary,
   RegisterPayload,
+  SnapPayment,
   SubCategory,
   SubCategoryPayload,
   User,
@@ -299,6 +300,16 @@ export const profileApi = {
       }),
   save: (token: string, payload: ProfilePayload) =>
     request<ApiEnvelope<Profile>>("/profile", { method: "PUT", token, body: payload }).then(unwrap),
+};
+
+// ---------- Payments ----------
+export const paymentApi = {
+  create: (token: string, orderId: number) =>
+    request<ApiEnvelope<SnapPayment>>("/payments/", {
+      method: "POST",
+      token,
+      body: { order_id: orderId },
+    }).then(unwrap),
 };
 
 // ---------- Orders ----------

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RequireRole } from "@/components/auth/RequireRole";
 import { useCart } from "@/components/cart/CartProvider";
+import { PaymentGuide } from "@/components/payment/PaymentGuide";
 import { ProductImage } from "@/components/product/ProductImage";
 import { useToast } from "@/components/ui/ToastProvider";
 import { LoadingBlock, Spinner } from "@/components/ui/Spinner";
@@ -43,7 +44,11 @@ function Checkout() {
     try {
       const orders = await checkout(selected);
       toast.success(orders.length > 1 ? `${orders.length} orders placed` : "Order placed");
-      router.replace(`/dashboard/buyer/orders?placed=${orders.length}`);
+      router.replace(
+        orders.length === 1
+          ? `/dashboard/buyer/orders?placed=1&order=${orders[0].id}&pay=1`
+          : `/dashboard/buyer/orders?placed=${orders.length}`,
+      );
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the server. Try again.");
       setPending(false);
@@ -166,6 +171,7 @@ function Checkout() {
             )
           )}
         </div>
+        <PaymentGuide />
       </section>
 
       <aside className="h-fit rounded-3xl border border-line bg-white p-6 lg:sticky lg:top-28">
@@ -237,7 +243,6 @@ function Checkout() {
         {selected === null && state.status === "ready" && (
           <p className="mt-2 text-center text-xs text-muted">Add a shipping address to continue.</p>
         )}
-        <p className="mt-3 text-center text-xs text-muted">Online payment is not enabled yet.</p>
       </aside>
     </div>
   );
