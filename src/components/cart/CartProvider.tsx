@@ -350,16 +350,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (addressId: number | null) => {
       if (buyerId === null) throw new ApiError(403, "Only buyers can check out.");
       await queue.current;
-      const ids = selectedItems.flatMap((i) => (i.itemId ? [i.itemId] : []));
+      const picked = selectedItems.filter((i) => i.itemId);
+      const ids = picked.flatMap((i) => (i.itemId ? [i.itemId] : []));
       if (ids.length === 0) throw new ApiError(400, "Select at least one item to check out.");
-      const orders = await authed((token) =>
-        cartApi.checkout(token, {
-          cart_item_ids: ids,
-          ...(addressId ? { address_id: addressId } : {}),
-        }),
+      const pickedIds = new Set(ids);
+      setServer((current) =>
+        current?.userId === buyerId
+          ? {
+              userId: buyerId,
+              items: current.items.filter((i) => !i.itemId || !pickedIds.has(i.itemId)),
+            }
+          : current,
       );
-      apply(buyerId, await authed((token) => cartApi.get(token)));
-      return orders;
+      try {
+        const orders = await authed((token) =>
+          cartApi.checkout(token, {
+            cart_item_ids: ids,
+            ...(addressId ? { address_id: addressId } : {}),
+          }),
+        );
+        authed((token) => cartApi.get(token))
+          .then((cart) => apply(buyerId, cart))
+          .catch(() => {});
+        return orders;
+      } catch (error) {
+        setServer((current) =>
+          current?.userId === buyerId
+            ? { userId: buyerId, items: [...current.items, ...picked] }
+            : current,
+        );
+        authed((token) => cartApi.get(token))
+          .then((cart) => apply(buyerId, cart))
+          .catch(() => {});
+        throw error;
+      }
     },
     [buyerId, selectedItems, authed, apply],
   );
