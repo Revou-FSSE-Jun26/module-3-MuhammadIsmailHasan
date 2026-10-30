@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { ApiError, authApi } from "@/lib/api";
-import { readSession, writeSession, type AuthStatus, type Session } from "@/lib/auth";
+import { readTokens, writeTokens, type AuthStatus, type Session, type Tokens } from "@/lib/auth";
 import type { RegisterPayload, User } from "@/lib/types";
 
 type AuthContextValue = {
@@ -27,18 +27,22 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Confirm the saved tokens still work; refresh once if the access token expired. */
-async function verify(saved: Session): Promise<Session | null> {
+async function verify(saved: Tokens): Promise<Session | null> {
   try {
     return { ...saved, user: await authApi.me(saved.accessToken) };
   } catch (error) {
-    if (!(error instanceof ApiError)) return saved;
+    if (!(error instanceof ApiError)) throw error;
   }
   try {
     const { access_token } = await authApi.refresh(saved.refreshToken);
-    return { ...saved, accessToken: access_token, user: await authApi.me(access_token) };
+    return {
+      accessToken: access_token,
+      refreshToken: saved.refreshToken,
+      user: await authApi.me(access_token),
+    };
   } catch (error) {
-    return error instanceof ApiError ? null : saved;
+    if (error instanceof ApiError) return null;
+    throw error;
   }
 }
 
@@ -50,11 +54,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     async function restore() {
-      const saved = readSession();
-      const next = saved ? await verify(saved) : null;
+      const saved = readTokens();
+      let next: Session | null = null;
+      let unreachable = false;
+      try {
+        next = saved ? await verify(saved) : null;
+      } catch {
+        unreachable = true;
+      }
       if (cancelled) return;
       sessionRef.current = next;
-      writeSession(next);
+      if (!unreachable) writeTokens(next);
       setSession(next);
       setStatus("ready");
     }
@@ -66,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const persist = useCallback((next: Session | null) => {
     sessionRef.current = next;
-    writeSession(next);
+    writeTokens(next);
     setSession(next);
   }, []);
 

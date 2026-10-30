@@ -1,6 +1,8 @@
+import { deleteCookie, getCookie, setCookie } from "./cookies";
 import type { Role, User } from "./types";
 
-export type Session = { user: User; accessToken: string; refreshToken: string };
+export type Tokens = { accessToken: string; refreshToken: string };
+export type Session = Tokens & { user: User };
 export type AuthStatus = "loading" | "ready";
 export type GuardResult = "loading" | "login" | "forbidden" | "ok";
 
@@ -10,23 +12,51 @@ export const ROLE_HOME: Record<Role, string> = {
   admin: "/dashboard/admin",
 };
 
-const STORAGE_KEY = "revoshop-auth-v1";
+const COOKIE_NAME = "revoshop-auth-v1";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+const LEGACY_STORAGE_KEY = "revoshop-auth-v1";
 
-export function readSession(): Session | null {
+function isTokens(value: unknown): value is Tokens {
+  const v = value as Partial<Tokens> | null;
+  return typeof v?.accessToken === "string" && typeof v?.refreshToken === "string";
+}
+
+function migrateLegacySession(): Tokens | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw) return null;
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    const old = JSON.parse(raw);
+    if (!isTokens(old)) return null;
+    const tokens = { accessToken: old.accessToken, refreshToken: old.refreshToken };
+    writeTokens(tokens);
+    return tokens;
   } catch {
     return null;
   }
 }
 
-export function writeSession(session: Session | null) {
+export function readTokens(): Tokens | null {
   try {
-    if (session) localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    else localStorage.removeItem(STORAGE_KEY);
+    const raw = getCookie(COOKIE_NAME);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return isTokens(parsed) ? parsed : null;
+    }
   } catch {
-    /* storage unavailable */
+    return migrateLegacySession();
+  }
+  return migrateLegacySession();
+}
+
+export function writeTokens(tokens: Tokens | null) {
+  if (tokens) {
+    const { accessToken, refreshToken } = tokens;
+    setCookie(COOKIE_NAME, JSON.stringify({ accessToken, refreshToken }), {
+      maxAge: COOKIE_MAX_AGE,
+    });
+  } else {
+    deleteCookie(COOKIE_NAME);
   }
 }
 
