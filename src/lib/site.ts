@@ -1,3 +1,10 @@
+const BACKEND_REPO = "https://github.com/Revou-FSSE-Jun26/module-2-MuhammadIsmailHasan";
+const FRONTEND_REPO = "https://github.com/Revou-FSSE-Jun26/module-3-MuhammadIsmailHasan";
+const LINKEDIN = "https://www.linkedin.com/in/ismail-hasan-147475156";
+
+type FooterLink = { label: string; href: string; external?: boolean };
+type FooterColumn = { title: string; links: FooterLink[] };
+
 export const siteConfig = {
   name: "RevoShop",
   locale: "id-ID",
@@ -149,7 +156,9 @@ export const siteConfig = {
     },
   ],
 
-  github: "https://github.com/MuhammadIsmailHasan",
+  backendRepo: BACKEND_REPO,
+  frontendRepo: FRONTEND_REPO,
+  linkedin: LINKEDIN,
 
   footer: [
     {
@@ -158,14 +167,17 @@ export const siteConfig = {
         { label: "All products", href: "/collections/all" },
         { label: "My orders", href: "/dashboard/buyer/orders" },
         { label: "Sell on RevoShop", href: "/register" },
+        { label: "Sign in", href: "/login" },
       ],
     },
     {
       title: "About",
       links: [
         { label: "FAQ", href: "/#faq" },
-        { label: "Sign in", href: "/login" },
+        { label: "Backend repository", href: BACKEND_REPO, external: true },
+        { label: "Frontend repository", href: FRONTEND_REPO, external: true },
+        { label: "LinkedIn", href: LINKEDIN, external: true },
       ],
     },
-  ],
+  ] as FooterColumn[],
 };

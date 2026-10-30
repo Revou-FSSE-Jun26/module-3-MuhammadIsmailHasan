@@ -34,23 +34,22 @@ export function Footer() {
             <ul className="mt-4 space-y-3 text-sm text-muted">
               {col.links.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="transition-colors hover:text-ink">
-                    {link.label}
-                  </Link>
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="transition-colors hover:text-ink"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link href={link.href} className="transition-colors hover:text-ink">
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
-              {col.title === "About" && (
-                <li>
-                  <a
-                    href={siteConfig.github}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="transition-colors hover:text-ink"
-                  >
-                    Source code
-                  </a>
-                </li>
-              )}
             </ul>
           </Reveal>
         ))}
