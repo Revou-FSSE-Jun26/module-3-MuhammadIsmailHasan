@@ -51,7 +51,20 @@ export function Header({ categories }: { categories: Category[] }) {
   function onSearch(e: FormEvent) {
     e.preventDefault();
     const q = query.trim();
-    router.push(q ? `/collections/all?q=${encodeURIComponent(q)}` : "/collections/all");
+    const { pathname, search } = window.location;
+    const inCatalog = pathname.startsWith("/collections/");
+    const next = new URLSearchParams();
+    if (inCatalog) {
+      const current = new URLSearchParams(search);
+      for (const key of ["sub", "sort"]) {
+        const value = current.get(key);
+        if (value) next.set(key, value);
+      }
+    }
+    if (q) next.set("q", q);
+    const base = inCatalog ? pathname : "/collections/all";
+    const qs = next.toString();
+    router.push(qs ? `${base}?${qs}` : base);
   }
 
   return (

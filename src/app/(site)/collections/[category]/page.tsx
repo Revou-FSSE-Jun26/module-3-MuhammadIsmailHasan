@@ -6,7 +6,7 @@ import { RevealGroup, RevealItem, SplitText } from "@/components/ui/Reveal";
 import { SortSelect } from "@/components/product/SortSelect";
 import { getCategories, getProducts } from "@/lib/api";
 import { resolveSubCategoryIds, sortToQuery } from "@/lib/catalog";
-import { categoryHref, cn } from "@/lib/format";
+import { cn } from "@/lib/format";
 
 type Params = Promise<{ category: string }>;
 type Search = Promise<{ q?: string; sort?: string; sub?: string; page?: string }>;
@@ -74,6 +74,15 @@ export default async function CollectionPage({
   const pagination = result.pagination;
   const title = q ? `Results for “${q}”` : (current?.name ?? "All products");
 
+  const chipHref = (categoryTarget: number | "all", subTarget?: number) => {
+    const next = new URLSearchParams();
+    if (subTarget) next.set("sub", String(subTarget));
+    if (q) next.set("q", q);
+    if (sort !== "featured") next.set("sort", sort);
+    const query = next.toString();
+    return `/collections/${categoryTarget}${query ? `?${query}` : ""}`;
+  };
+
   const pageHref = (target: number) => {
     const next = new URLSearchParams();
     if (q) next.set("q", q);
@@ -99,7 +108,7 @@ export default async function CollectionPage({
         <ul className="no-scrollbar flex gap-2 overflow-x-auto">
           <li>
             <Link
-              href={categoryHref(current?.id ?? "all")}
+              href={chipHref(current?.id ?? "all")}
               className={cn(
                 "block whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition",
                 !subId ? "border-ink bg-ink text-white" : "border-line hover:border-ink",
@@ -111,7 +120,7 @@ export default async function CollectionPage({
           {subs.map((s) => (
             <li key={s.id}>
               <Link
-                href={categoryHref(s.category_id, s.id)}
+                href={chipHref(s.category_id, s.id)}
                 className={cn(
                   "block whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition",
                   subId === s.id ? "border-ink bg-ink text-white" : "border-line hover:border-ink",
