@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
-import { useState, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useCart } from "@/components/cart/CartProvider";
 import { Icon } from "@/components/ui/Icon";
+import { Spinner } from "@/components/ui/Spinner";
 import { ROLE_HOME } from "@/lib/auth";
 import { categoryHref, cn, formatPrice } from "@/lib/format";
 import type { Category } from "@/lib/types";
@@ -22,6 +23,7 @@ export function Header({ categories }: { categories: Category[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [searching, startSearch] = useTransition();
 
   const accountNav = user
     ? [{ label: "Dashboard", href: ROLE_HOME[user.role] }]
@@ -64,7 +66,12 @@ export function Header({ categories }: { categories: Category[] }) {
     if (q) next.set("q", q);
     const base = inCatalog ? pathname : "/collections/all";
     const qs = next.toString();
-    router.push(qs ? `${base}?${qs}` : base);
+    const target = qs ? `${base}?${qs}` : base;
+    setMenuOpen(false);
+    startSearch(() => {
+      if (target === `${pathname}${search}`) router.refresh();
+      else router.push(target);
+    });
   }
 
   return (
@@ -104,6 +111,7 @@ export function Header({ categories }: { categories: Category[] }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search products…"
+              aria-busy={searching}
               className="h-11 w-full rounded-full border border-line bg-[#f6f6f6] pl-5 pr-12 text-sm outline-none transition focus:border-ink focus:bg-white"
             />
             <button
@@ -111,7 +119,7 @@ export function Header({ categories }: { categories: Category[] }) {
               className="absolute right-1 top-1 grid size-9 place-items-center rounded-full text-ink hover:bg-white"
               aria-label="Search"
             >
-              <Icon name="search" size={18} />
+              {searching ? <Spinner className="size-4" /> : <Icon name="search" size={18} />}
             </button>
           </form>
 

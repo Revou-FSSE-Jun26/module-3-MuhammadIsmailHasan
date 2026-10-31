@@ -307,7 +307,7 @@ export function CartDrawer() {
                 <p className="mt-1 text-xs text-muted">
                   Orders are placed separately for each seller.
                 </p>
-                {selectedCount > 0 ? (
+                {selectedCount > 0 && !busy ? (
                   <Link
                     href="/checkout"
                     onClick={close}
@@ -320,7 +320,7 @@ export function CartDrawer() {
                     aria-disabled="true"
                     className="mt-4 grid h-12 w-full cursor-not-allowed place-items-center rounded-full bg-ink/40 text-sm font-semibold text-white"
                   >
-                    Select items to check out
+                    {selectedCount > 0 ? "Updating cart…" : "Select items to check out"}
                   </span>
                 )}
               </div>

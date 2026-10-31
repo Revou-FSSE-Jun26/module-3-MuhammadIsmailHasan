@@ -25,7 +25,7 @@ export function CheckoutView() {
 
 function Checkout() {
   const toast = useToast();
-  const { groups, selectedItems, selectedSubtotal, selectedCount, checkout, loading, open } =
+  const { groups, selectedItems, selectedSubtotal, selectedCount, checkout, loading, open, busy } =
     useCart();
   const router = useRouter();
   const { state, reload } = useAuthedQuery("addresses", (token) => addressApi.list(token));
@@ -234,11 +234,11 @@ function Checkout() {
         <button
           type="button"
           onClick={placeOrder}
-          disabled={pending || selected === null || state.status !== "ready"}
+          disabled={pending || busy || selected === null || state.status !== "ready"}
           className="mt-5 h-12 w-full rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50"
         >
           {pending && <Spinner className="mr-2 size-4 align-[-3px]" />}
-          {pending ? "Placing order…" : "Place order"}
+          {pending ? "Placing order…" : busy ? "Updating cart…" : "Place order"}
         </button>
         {selected === null && state.status === "ready" && (
           <p className="mt-2 text-center text-xs text-muted">Add a shipping address to continue.</p>
