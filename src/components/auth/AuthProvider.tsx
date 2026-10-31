@@ -27,11 +27,25 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const RETRY_DELAYS = [1500, 3000, 6000, 12000];
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+function rejected(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    error.status !== 408 &&
+    error.status !== 429
+  );
+}
+
 async function verify(saved: Tokens): Promise<Session | null> {
   try {
     return { ...saved, user: await authApi.me(saved.accessToken) };
   } catch (error) {
-    if (!(error instanceof ApiError)) throw error;
+    if (!rejected(error)) throw error;
   }
   try {
     const { access_token } = await authApi.refresh(saved.refreshToken);
@@ -41,8 +55,20 @@ async function verify(saved: Tokens): Promise<Session | null> {
       user: await authApi.me(access_token),
     };
   } catch (error) {
-    if (error instanceof ApiError) return null;
+    if (rejected(error)) return null;
     throw error;
+  }
+}
+
+async function verifyWithRetry(saved: Tokens, cancelled: () => boolean): Promise<Session | null> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await verify(saved);
+    } catch (error) {
+      if (attempt >= RETRY_DELAYS.length || cancelled()) throw error;
+      await wait(RETRY_DELAYS[attempt]);
+      if (cancelled()) throw error;
+    }
   }
 }
 
@@ -58,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let next: Session | null = null;
       let unreachable = false;
       try {
-        next = saved ? await verify(saved) : null;
+        next = saved ? await verifyWithRetry(saved, () => cancelled) : null;
       } catch {
         unreachable = true;
       }
