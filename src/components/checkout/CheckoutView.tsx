@@ -23,10 +23,17 @@ export function CheckoutView() {
   );
 }
 
+type Summary = Pick<
+  ReturnType<typeof useCart>,
+  "groups" | "selectedItems" | "selectedSubtotal" | "selectedCount"
+>;
+
 function Checkout() {
   const toast = useToast();
-  const { groups, selectedItems, selectedSubtotal, selectedCount, checkout, loading, open, busy } =
-    useCart();
+  const cart = useCart();
+  const { checkout, loading, open, busy } = cart;
+  const [frozen, setFrozen] = useState<Summary | null>(null);
+  const { groups, selectedItems, selectedSubtotal, selectedCount } = frozen ?? cart;
   const router = useRouter();
   const { state, reload } = useAuthedQuery("addresses", (token) => addressApi.list(token));
   const [chosen, setChosen] = useState<number | null>(null);
@@ -41,6 +48,7 @@ function Checkout() {
   async function placeOrder() {
     setError(null);
     setPending(true);
+    setFrozen({ groups, selectedItems, selectedSubtotal, selectedCount });
     try {
       const orders = await checkout(selected);
       toast.success(orders.length > 1 ? `${orders.length} orders placed` : "Order placed");
@@ -52,6 +60,7 @@ function Checkout() {
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not reach the server. Try again.");
       setPending(false);
+      setFrozen(null);
     }
   }
 
